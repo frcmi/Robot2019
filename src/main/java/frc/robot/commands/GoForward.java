@@ -1,39 +1,32 @@
 package frc.robot.commands;
 
 import frc.robot.Robot;
-
 import edu.wpi.first.wpilibj.command.Command;
 
-
-//Example of how to program an autonomous command
-public class Autonomous1 extends AutonomousCommand {
-
-    public String name; // The name to be displayed as a choice at the SmartDashboard
-
-    public Autonomous1() {
-        name = "Autonomous1";
-
+//Command to move the test motor
+public class GoForward extends CommandBase {
+    public GoForward() {
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
-        requires(null);
-    }
+        requires(testMotor);
+    }	
 
     // Called when the command starts running
     @Override
     public void start() {
-        super.start();
+
     }
 
-    //Called periodically while the command is running
+    // Called periodically while the command is running
     @Override
     protected void execute() {
-
+        
     }
 
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-        
+        tankDrive.moveForward();
     }
 
 
@@ -43,10 +36,10 @@ public class Autonomous1 extends AutonomousCommand {
         return false;
     }
 
-    // Called when after isFinished returns true
+    // Called once after isFinished returns true
     @Override
     protected void end() {
-        
+        tankDrive.stop();
     }
 
     // Called when another command which requires one or more of the same

@@ -5,13 +5,14 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package org.usfirst.frc.team5937.robot;
+package frc.robot;
 
-import org.usfirst.frc.team5937.robot.subsystems.TestMotor;
-import org.usfirst.frc.team5937.robot.commands.Autonomous1;
-import org.usfirst.frc.team5937.robot.commands.MoveTestMotor;
-import org.usfirst.frc.team5937.robot.commands.AutonomousCommand;
-import org.usfirst.frc.team5937.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.TestMotor;
+import frc.robot.commands.Autonomous1;
+import frc.robot.commands.MoveTestMotor;
+import frc.robot.commands.AutonomousCommand;
+import frc.robot.subsystems.DriveTrain;
+import frc.robot.commands.GoForward;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.cscore.UsbCamera;
@@ -39,6 +40,7 @@ public class Robot extends TimedRobot {
     public AutonomousCommand autonomousCommand; // The command to be run in the autonomous
     public RobotInfo info; //Static information about the robot (team and starting position)
     public MoveTestMotor moveTestMotor;
+    public GoForward goForward;
     
     /**
      * This function is run when the robot is first started up and should be
@@ -88,11 +90,13 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         autonomousCommand.cancel();
+        goForward.start();
     }
     
     // Called periodically during operator control period
     @Override
     public void teleopPeriodic() {
+        Scheduler.getInstance().run();
     }
 
     
