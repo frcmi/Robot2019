@@ -1,7 +1,8 @@
-package org.usfirst.frc.team5937.robot.commands;
+package frc.robot.commands;
 
-import org.usfirst.frc.team5937.robot.subsystems.DriveTrain;
-import org.usfirst.frc.team5937.robot.subsystems.TestMotor;
+import frc.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.TestMotor;
+import frc.robot.subsystems.TankDrive;
 
 import edu.wpi.first.wpilibj.command.Command;
 
@@ -10,7 +11,8 @@ import edu.wpi.first.wpilibj.command.Command;
 public abstract class CommandBase extends Command {
     public static DriveTrain driveTrain; //Drive train subsystem
     public static TestMotor testMotor; //TestMotor subsystem
-    
+    public static TankDrive tankDrive;
+
     static {
         testMotor = TestMotor.getInstance();
         //TODO driveTrain constructor

@@ -1,6 +1,6 @@
-package org.usfirst.frc.team5937.robot.subsystems;
+package frc.robot.subsystems;
 
-import org.usfirst.frc.team5937.robot.commands.MoveTestMotor;
+import frc.robot.commands.MoveTestMotor;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
 
