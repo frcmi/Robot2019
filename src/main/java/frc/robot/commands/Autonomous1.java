@@ -15,7 +15,7 @@ public class Autonomous1 extends AutonomousCommand {
 
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
-        requires(null);
+        requires(driveTrain);
     }
 
     // Called when the command starts running
