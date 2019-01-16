@@ -21,12 +21,15 @@ public class RobotInfo {
 
         // Gets starting position
         String gameData = DriverStation.getInstance().getGameSpecificMessage();
-        if(gameData.charAt(0) == 'L') {
-            startingPosition = "Left";
-        } else if(gameData.charAt(0) == 'R') {
-            startingPosition = "Right";
-        } else {
-            startingPosition = null;
+        if (gameData.length() == 0) startingPosition = "Left";
+        else {
+            if(gameData.charAt(0) == 'L') {
+                startingPosition = "Left";
+            } else if(gameData.charAt(0) == 'R') {
+                startingPosition = "Right";
+            } else {
+                startingPosition = null;
+            }
         }
     }
 }

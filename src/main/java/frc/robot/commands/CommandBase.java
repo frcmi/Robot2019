@@ -11,10 +11,10 @@ import edu.wpi.first.wpilibj.command.Command;
 public abstract class CommandBase extends Command {
     public static DriveTrain driveTrain; //Drive train subsystem
     public static TestMotor testMotor; //TestMotor subsystem
-    public static TankDrive tankDrive;
 
     static {
         testMotor = TestMotor.getInstance();
+        driveTrain = TankDrive.getInstance();
         //TODO driveTrain constructor
     }
 }

@@ -8,7 +8,7 @@ public class GoForward extends CommandBase {
     public GoForward() {
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
-        requires(testMotor);
+        requires(driveTrain);
     }	
 
     // Called when the command starts running
@@ -26,7 +26,8 @@ public class GoForward extends CommandBase {
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-        tankDrive.moveForward();
+        System.out.println("Calling driveTrain.moveForward from GoForward");
+        driveTrain.moveForward();
     }
 
 
@@ -39,7 +40,7 @@ public class GoForward extends CommandBase {
     // Called once after isFinished returns true
     @Override
     protected void end() {
-        tankDrive.stop();
+        driveTrain.stop();
     }
 
     // Called when another command which requires one or more of the same

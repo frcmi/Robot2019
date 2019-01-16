@@ -16,5 +16,8 @@ public abstract class DriveTrain extends Subsystem {
     @Override
     protected void initDefaultCommand() {
     }
-
+    public abstract void moveForward();
+    public abstract void stop();
+    public abstract void moveLeftDrive(double magnitude);
+    public abstract void moveRightDrive(double magnitude);
 }

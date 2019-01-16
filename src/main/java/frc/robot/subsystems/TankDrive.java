@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.*;
 
 
 //A subsystem to control a single motor, to test the code or system
-public class TankDrive extends Subsystem {
+public class TankDrive extends DriveTrain {
 
     // Subsystems are singleton classes, so there should only be one of each class. Instead
     // of calling the constructor directly, the client should use getInstance to prevent duplication
@@ -42,6 +42,17 @@ public class TankDrive extends Subsystem {
         frontRight.set(1.0);
         backLeft.set(1.0);
         backRight.set(1.0);
+        System.out.println("Moving forward");
+    }
+
+    public void moveRightDrive(double magnitude){
+        frontRight.set(magnitude);
+        backRight.set(magnitude);
+    }
+
+    public void moveLeftDrive(double magnitude){
+        frontLeft.set(magnitude);
+        backLeft.set(magnitude);
     }
     
     //Makes the motor stop
@@ -50,5 +61,6 @@ public class TankDrive extends Subsystem {
         frontRight.set(0.0);
         backLeft.set(0.0);
         backRight.set(0.0);
+        System.out.println("Stopping");
     }
 }

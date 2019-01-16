@@ -13,6 +13,7 @@ import frc.robot.commands.MoveTestMotor;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.commands.GoForward;
+import frc.robot.commands.Teleop;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.cscore.UsbCamera;
@@ -48,11 +49,12 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-
+        Scheduler.getInstance().enable();
+        System.out.println("Robot initializing");
         info = new RobotInfo();
         
         //AUTONOMOUS SETUP:
-
+        
         autonomousCommands = new TreeSet<AutonomousCommand>();
 
         //Add any autonomous programs to autonomousCommands as shown here:
@@ -62,19 +64,21 @@ public class Robot extends TimedRobot {
         Iterator<AutonomousCommand> it = autonomousCommands.iterator();
         while (it.hasNext()) {
             AutonomousCommand temp = it.next();
-            autonomousChooser.addObject(temp.name, temp);
+            autonomousChooser.addOption(temp.name, temp);
         }
         SmartDashboard.putData("Auto choices", autonomousChooser);
         
-        SmartDashboard.putData(Scheduler.getInstance()); //Makes the SmartDashboard display the status of running commands
+        SmartDashboard.putData("Commands", Scheduler.getInstance()); //Makes the SmartDashboard display the status of running commands
+        
+        autonomousCommand = new Autonomous1();
         
     }
 
     // Called when autonomous mode starts. Starts the autonomous command
     @Override
     public void autonomousInit() {
-        System.out.println("Autonomous selected: " + autonomousChooser.getSelected().name);
-        autonomousCommand = autonomousChooser.getSelected();
+        //System.out.println("Autonomous selected: " + autonomousChooser.getSelected().name);
+        //autonomousCommand = autonomousChooser.getSelected();
         autonomousCommand.start();
     }
 
@@ -89,8 +93,8 @@ public class Robot extends TimedRobot {
     // Called when the robot is put into operator control mode
     @Override
     public void teleopInit() {
-        autonomousCommand.cancel();
-        goForward.start();
+        System.out.println("adding a new GoForward to scheduler");
+        Scheduler.getInstance().add(new Teleop());
     }
     
     // Called periodically during operator control period
