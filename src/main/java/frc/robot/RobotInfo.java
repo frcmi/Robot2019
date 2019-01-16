@@ -14,14 +14,14 @@ public class RobotInfo {
         team = null;
 
         switch (teamTemp) {
-            case DriverStation.Alliance.Blue: team = "Blue"; break;
-            case DriverStation.Alliance.Red: team = "Red"; break;
+            case Blue: team = "Blue"; break;
+            case Red: team = "Red"; break;
         }
 
         // Gets starting position
         String gameData = DriverStation.getInstance().getGameSpecificMessage();
         startingPosition = null;
-        
+
         switch (gameData.charAt(0)) {
             case 'L': startingPosition = "Left"; break;
             case 'R': startingPosition = "Right"; break;
