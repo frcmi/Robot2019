@@ -11,22 +11,20 @@ public class RobotInfo {
     public RobotInfo() {
         // Gets team
         Alliance teamTemp = DriverStation.getInstance().getAlliance();
-        if(teamTemp == DriverStation.Alliance.Blue) {
-            team = "Blue";
-        } else if(teamTemp == DriverStation.Alliance.Red) {
-            team = "Blue";
-        } else {
-            team = null;
+        team = null;
+
+        switch (teamTemp) {
+            case DriverStation.Alliance.Blue: team = "Blue"; break;
+            case DriverStation.Alliance.Red: team = "Red"; break;
         }
 
         // Gets starting position
         String gameData = DriverStation.getInstance().getGameSpecificMessage();
-        if(gameData.charAt(0) == 'L') {
-            startingPosition = "Left";
-        } else if(gameData.charAt(0) == 'R') {
-            startingPosition = "Right";
-        } else {
-            startingPosition = null;
+        startingPosition = null;
+        
+        switch (gameData.charAt(0)) {
+            case 'L': startingPosition = "Left"; break;
+            case 'R': startingPosition = "Right"; break;
         }
     }
 }
