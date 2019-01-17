@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.Pneumatics;
 import frc.robot.subsystems.TestMotor;
 import frc.robot.subsystems.TankDrive;
 
@@ -11,10 +12,12 @@ import edu.wpi.first.wpilibj.command.Command;
 public abstract class CommandBase extends Command {
     public static DriveTrain driveTrain; //Drive train subsystem
     public static TestMotor testMotor; //TestMotor subsystem
+    public static Pneumatics pneumatics; //Pneumatics subsystem
 
     static {
         testMotor = TestMotor.getInstance();
         driveTrain = TankDrive.getInstance();
+        pneumatics = Pneumatics.getInstance();
         //TODO driveTrain constructor
     }
 }
