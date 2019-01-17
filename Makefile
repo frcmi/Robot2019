@@ -1,5 +1,5 @@
 all:
 	./gradlew build
 
-clean:
+run:
 	./gradlew deploy
