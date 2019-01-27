@@ -21,7 +21,20 @@
 *.dll
 *.bin
 *.lock
+*.dll
 
+# Gradle files #
+.gradle/5.0/fileHashes/fileHashes.bin
+.gradle/5.0/fileHashes/fileHashes.lock
+.gradle/5.0/javaCompile/javaCompile.lock
+.gradle/5.0/javaCompile/taskHistory.bin
+.gradle/5.0/taskHistory/taskHistory.bin
+.gradle/5.0/taskHistory/taskHistory.lock
+.gradle/buildOutputCleanup/buildOutputCleanup.lock
+.gradle/buildOutputCleanup/outputFiles.bin
+
+# Build files #
+build/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
