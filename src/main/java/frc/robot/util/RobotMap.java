@@ -11,11 +11,13 @@ public class RobotMap {
     public static Victor frontLeft;
     public static Joystick xbox360;
     public static Solenoid sol;
+
     static {
         backRight = new Victor(2);
         frontRight = new Victor(3);
         backLeft = new Victor(0);
         frontLeft = new Victor(1);
+
         xbox360 = new Joystick(0);
         sol = new Solenoid(0);
     }

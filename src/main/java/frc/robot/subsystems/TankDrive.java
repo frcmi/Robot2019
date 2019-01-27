@@ -17,17 +17,13 @@ public class TankDrive extends DriveTrain {
         return instance;
     }
 
-    private Victor frontLeft;
-    private Victor frontRight;
-    private Victor backLeft;
-    private Victor backRight;
-    
+    private Tread leftTread, rightTread;
+
     private TankDrive() {
         super();
-        frontLeft = RobotMap.frontLeft;
-        frontRight = RobotMap.frontRight;
-        backLeft = RobotMap.backLeft;
-        backRight = RobotMap.backRight;
+        leftTread = new Tread(RobotMap.frontLeft, RobotMap.backLeft);
+        rightTread = new Tread(RobotMap.frontRight, RobotMap.backRight);
+        leftTread.setInverted(true);
     }
     
     //Sets default command for the system
@@ -36,31 +32,19 @@ public class TankDrive extends DriveTrain {
         setDefaultCommand(null);
     }
 
-    //Moves the motor at a constant rate
-    public void moveForward() {
-        frontLeft.set(1.0);
-        frontRight.set(1.0);
-        backLeft.set(1.0);
-        backRight.set(1.0);
-        System.out.println("Moving forward");
-    }
-
+    //Moves the right tread with power magnitude
     public void moveRightDrive(double magnitude){
-        frontRight.set(magnitude);
-        backRight.set(magnitude);
+        rightTread.set(magnitude);
     }
 
+    //Moves the left tread with power magnitude
     public void moveLeftDrive(double magnitude){
-        frontLeft.set(magnitude);
-        backLeft.set(magnitude);
+        leftTread.set(magnitude);
     }
     
     //Makes the motor stop
     public void stop() {
-        frontLeft.set(0.0);
-        frontRight.set(0.0);
-        backLeft.set(0.0);
-        backRight.set(0.0);
-        System.out.println("Stopping");
+        leftTread.stopMotor();
+        rightTread.stopMotor();
     }
 }

@@ -26,8 +26,8 @@ public class GoForward extends CommandBase {
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-        System.out.println("Calling driveTrain.moveForward from GoForward");
-        driveTrain.moveForward();
+        driveTrain.moveRightDrive(1.0);
+        driveTrain.moveLeftDrive(1.0);
     }
 
 
