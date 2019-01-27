@@ -3,7 +3,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
-//The static info of a robot, i.e. team, starting position, autonomous
+//The static info of a robot, i.e. team, starting position
 public class RobotInfo {
     public String team; //either Either Red or Blue, or null if can't find team
     public String startingPosition; //Either Right or Left, or null if can't get position

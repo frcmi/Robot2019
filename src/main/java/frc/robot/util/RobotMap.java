@@ -2,7 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.*;
 
-// All output and input objects (motors, cameras, etc) are defined here
+// All output and input objects (motors, cameras, encoders, etc) are defined here
 public class RobotMap {
     public static Victor testMotor;
     public static Victor backRight;
@@ -19,6 +19,7 @@ public class RobotMap {
         xbox360 = new Joystick(0);
         sol = new Solenoid(0);
     }
+
     public static double getLeftStickX() {
         return xbox360.getRawAxis(0);
     }
