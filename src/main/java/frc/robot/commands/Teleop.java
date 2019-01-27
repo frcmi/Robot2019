@@ -22,7 +22,7 @@ public class Teleop extends CommandBase {
     @Override
     protected void execute() {
         driveTrain.moveLeftDrive(RobotMap.getLeftStickY());
-
+        driveTrain.moveRightDrive(RobotMap.getRightStickY());
     }
 
     // Called just before this Command runs for the first time
