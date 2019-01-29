@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e
+
+if ! which grealpath > /dev/null; then
+  echo "grealpath is not installed on dev host; installing"
+  brew install coreutils
+fi
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo "Script dir is $SCRIPT_DIR"
+
+JETSON_DIR="$( grealpath "$SCRIPT_DIR/.." )"
+echo "Jetson dir is $JETSON_DIR"
+
+JTARGET=$1
+
+usage() {
+  echo "Usage is:" >&2
+  echo "" >&2
+  echo "  post-upgrade-init <jetson-username>@<jetson-ip-address>" >&2
+  exit 1
+}
+
+if [ -z "$JTARGET" ]; then
+  usage
+fi
+
+echo "Updating basic home directory files..."
+
+rsync -a "$JETSON_DIR/home/" "$JTARGET:~/"
+
+echo "Installing/upgrading"
+
+ssh "$JTARGET" post-upgrade-setup
+
+echo "Install complete!"

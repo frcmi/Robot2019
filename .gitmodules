@@ -1,0 +1,3 @@
+[submodule "jetson/opencv/experiments/python-opencv-gstreamer-examples"]
+	path = jetson/opencv/experiments/python-opencv-gstreamer-examples
+	url = git@github.com:madams1337/python-opencv-gstreamer-examples.git

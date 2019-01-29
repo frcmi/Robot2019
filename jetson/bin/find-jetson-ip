@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# convert an IP address and hex netmask to the CIDR of the subnet
+ipnmtocidr() {
+  ip=$1
+  netmask=`printf "%u" "0x$2"`  
+  ipv=0
+  nmv=0
+
+  IFS=.
+  for dec in $ip ; do
+    ipv=$(( ( 256 * $ipv ) + $dec ))
+  done
+  unset IFS
+
+  nbits=0
+  x=$netmask
+  while [ $(( $x & 1 ))  -eq 0 ]; do
+    let nbits+=1
+    x=$(( x >> 1 ))
+  done
+
+  nbits=$(( 32 - nbits ))
+
+  ipbv=$(( $ipv & $netmask ))
+  ipb1=$(( (ipbv >> 24) & 255 ))
+  ipb2=$(( (ipbv >> 16) & 255 ))
+  ipb3=$(( (ipbv >> 8) & 255 ))
+  ipb4=$(( ipbv & 255 ))
+
+  ipbase="`printf "%u.%u.%u.%u" $ipb1 $ipb2 $ipb3 $ipb4`"
+
+  # echo "netmask=$netmask"
+  # echo "ipbase=$ipbase"
+	
+  echo "$ipbase/$nbits"
+}
+
+
+
+MY_IP_AND_NETMASK="`ifconfig en0 | grep 'inet ' | sed -n -E 's/^.*inet ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) netmask 0x([0-9a-f]+) broadcast.*$/\1 \2/p'`"
+
+set -e
+
+SUBNET=`ipnmtocidr $MY_IP_AND_NETMASK`
+
+echo "Scanning for NVidia adapters running SSH on subnet $SUBNET..." >&2
+sudo nmap -sS -p 22 192.168.1.0/24 | grep -B5 Nvidia | grep 'scan report' | sed -n -E 's/^Nmap scan report for ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).*$/\1/p'
