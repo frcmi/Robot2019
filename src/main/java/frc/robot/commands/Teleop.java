@@ -21,8 +21,8 @@ public class Teleop extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        driveTrain.moveLeftDrive(RobotMap.getLeftYAxis());
-        driveTrain.moveRightDrive(RobotMap.getRightYAxis());
+      //  driveTrain.moveLeftDrive(RobotMap.getLeftYAxis());
+      //  driveTrain.moveRightDrive(RobotMap.getRightYAxis());
     }
 
     // Called just before this Command runs for the first time

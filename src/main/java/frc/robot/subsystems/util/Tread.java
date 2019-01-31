@@ -3,7 +3,7 @@ package frc.robot.subsystems.util;
 import edu.wpi.first.wpilibj.SpeedController;
 import java.util.*;
 
-public class Tread implements SpeedController{
+public class Tread implements SpeedController {
     private List<SpeedController> motors;
     private boolean isInverted = false;
     private double power;

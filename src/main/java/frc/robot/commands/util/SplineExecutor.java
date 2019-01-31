@@ -2,15 +2,20 @@ package frc.robot.commands.util;
 
 public class SplineExecutor {
 
-    public SplinePoint currentPosition;
-    public SplinePath currentPath;
+    public SplinePoint current;
+    public SplinePath path;
 
     public SplineExecutor(SplinePath path, SplinePoint current) {
-        currentPosition = current;
-        currentPath = path;
+        this.current = current;
+        this.path = path;
     }
 
     public void followSpline() {
-        if (current.x < path.get)
+        SplinePoint temp = path.getNextPoint();
+        if (current.x < path.getNextPoint().x) {
+            if (current.y < temp.y) {
+                // rotate(current.angle - temp.angle);
+            }
+        }
     }
 }

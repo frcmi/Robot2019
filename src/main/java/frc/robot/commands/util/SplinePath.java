@@ -15,4 +15,8 @@ public class SplinePath {
     public void addPoint(SplinePoint point) {
         path.add(point);
     }
+
+    public SplinePoint getNextPoint() {
+        return path.get(path.size());
+    }
 }
