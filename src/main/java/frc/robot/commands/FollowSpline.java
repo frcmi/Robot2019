@@ -1,37 +1,37 @@
 package frc.robot.commands;
 
 import frc.robot.Robot;
-import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.util.RobotMap;
 
-//Command to move the test motor
-public class Teleop extends CommandBase {
-    public Teleop() {
+import edu.wpi.first.wpilibj.command.Command;
+
+public class FollowSpline extends CommandBase {
+
+    public String name; // The name to be displayed as a choice at the SmartDashboard
+
+    public FollowSpline() {
+        name = "Follow Spline";
+
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
         requires(driveTrain);
-    }	
+    }
 
     // Called when the command starts running
     @Override
     public void start() {
-
+        super.start();
     }
 
-    // Called periodically while the command is running
+    //Called periodically while the command is running
     @Override
     protected void execute() {
-        driveTrain.moveLeftDrive(RobotMap.getLeftYAxis());
-        driveTrain.moveRightDrive(RobotMap.getRightYAxis());
+
     }
 
     // Called just before this Command runs for the first time
     @Override
-
-
-
     protected void initialize() {
-        System.out.println("Starting teleop");
+        
     }
 
 
@@ -41,10 +41,10 @@ public class Teleop extends CommandBase {
         return false;
     }
 
-    // Called once after isFinished returns true
+    // Called when after isFinished returns true
     @Override
     protected void end() {
-        driveTrain.stop();
+        
     }
 
     // Called when another command which requires one or more of the same
