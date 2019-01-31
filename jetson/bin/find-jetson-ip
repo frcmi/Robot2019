@@ -1,20 +1,46 @@
 #!/bin/bash
 
-# convert an IP address and hex netmask to the CIDR of the subnet
-ipnmtocidr() {
-  ip=$1
-  netmask=`printf "%u" "0x$2"`  
-  ipv=0
-  nmv=0
+set -e
+set -x
 
+JETSON_NET_INTERFACE=ens33
+
+if [ -n "$1" ]; then
+  JETSON_NET_INTERFACE=$1
+fi
+
+# convert a.b.c.d ip address into  unsigned integer
+iptodec() {
+  local ip=$1
+  local ipv=0
+  local dec
   IFS=.
   for dec in $ip ; do
     ipv=$(( ( 256 * $ipv ) + $dec ))
   done
   unset IFS
+  echo "$ipv"
+}
 
-  nbits=0
-  x=$netmask
+
+# convert an IP address and hex netmask to the CIDR of the subnet
+ipnmtocidr() {
+  local ip=$1
+  local raw_netmask=$2
+  local netmask
+
+  if [[ "$raw_netmask" == 0x* ]]; then
+    netmask="`printf "%u" "0x$raw_netmask"`"
+  else
+    netmask="`iptodec "$raw_netmask"`"
+  fi
+
+  ipv="`iptodec $ip`"
+
+  echo "ipv=$ipv; nmv=$netmask" >&2
+
+  local nbits=0
+  local x=$netmask
   while [ $(( $x & 1 ))  -eq 0 ]; do
     let nbits+=1
     x=$(( x >> 1 ))
@@ -22,13 +48,15 @@ ipnmtocidr() {
 
   nbits=$(( 32 - nbits ))
 
-  ipbv=$(( $ipv & $netmask ))
-  ipb1=$(( (ipbv >> 24) & 255 ))
-  ipb2=$(( (ipbv >> 16) & 255 ))
-  ipb3=$(( (ipbv >> 8) & 255 ))
-  ipb4=$(( ipbv & 255 ))
+  echo "nbits=$nbits" >&2
 
-  ipbase="`printf "%u.%u.%u.%u" $ipb1 $ipb2 $ipb3 $ipb4`"
+  local ipbv=$(( $ipv & $netmask ))
+  local ipb1=$(( (ipbv >> 24) & 255 ))
+  local ipb2=$(( (ipbv >> 16) & 255 ))
+  local ipb3=$(( (ipbv >> 8) & 255 ))
+  local ipb4=$(( ipbv & 255 ))
+
+  local ipbase="`printf "%u.%u.%u.%u" $ipb1 $ipb2 $ipb3 $ipb4`"
 
   # echo "netmask=$netmask"
   # echo "ipbase=$ipbase"
@@ -37,10 +65,13 @@ ipnmtocidr() {
 }
 
 
+MY_IP_AND_NETMASK="`ifconfig $JETSON_NET_INTERFACE | grep 'inet ' | sed -n -E 's/^.*inet +(addr:)?([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) +(Bcast:[^ ]+ +)?(netmask |Mask:)([0-9a-fx.]+)( .*)?$/\2 \5/p'`"
 
-MY_IP_AND_NETMASK="`ifconfig en0 | grep 'inet ' | sed -n -E 's/^.*inet ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) netmask 0x([0-9a-f]+) broadcast.*$/\1 \2/p'`"
+echo "IP and netmask:[$MY_IP_AND_NETMASK]"
 
-set -e
+if [ -z "$MY_IP_AND_NETMASK" ]; then
+  echo "could not get ip and netmask for interface $JETSON_NET_INTERFACEZ"
+fi
 
 SUBNET=`ipnmtocidr $MY_IP_AND_NETMASK`
 
