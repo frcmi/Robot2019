@@ -6,7 +6,7 @@ import homerefl
 
 print("OpenCV version is ", cv2.__version__)
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("v4l2src device=/dev/video1 ! video/x-raw,framerate=30/1,width=1280,height=720 ! appsink")
 gp = homerefl.GripPipeline()
 
 while(True):

@@ -60,7 +60,7 @@ import GripPipeline
 
 print("OpenCV version is ", cv2.__version__)
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("v4l2src device=/dev/video1 ! video/x-raw,framerate=30/1,width=1280,height=720 ! appsink")
 gp = GripPipeline.GripPipeline()
 
 class Target(object):
@@ -87,13 +87,13 @@ while(True):
     gp.process(frame)
 
     contours = gp.filter_contours_output
-    (contours, boundingBoxes) = imutils.contours.sort_contours(contours, method='left-to-right')
 
-    # cv2.drawContours(frame, contours, -1, (255,0,0), 3)
+    cv2.drawContours(frame, contours, -1, (255,0,0), 3)
 
     if len(contours) < 2:
         print("Could not find 2 potential target contours")
     else:
+        (contours, boundingBoxes) = imutils.contours.sort_contours(contours, method='left-to-right')
         targets = []
         for ic in range(len(contours)):
             contour = contours[ic]
