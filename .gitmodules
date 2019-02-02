@@ -1,3 +1,9 @@
 [submodule "jetson/opencv/experiments/python-opencv-gstreamer-examples"]
 	path = jetson/opencv/experiments/python-opencv-gstreamer-examples
 	url = git@github.com:madams1337/python-opencv-gstreamer-examples.git
+[submodule "jetson/external/buildOpenCVTX2"]
+	path = jetson/external/buildOpenCVTX2
+	url = git@github.com:frcmi/buildOpenCVTX2.git
+[submodule "jetson/opencv/experiments/external/python-opencv-gstreamer-examples"]
+	path = jetson/opencv/experiments/external/python-opencv-gstreamer-examples
+	url = git@github.com:madams1337/python-opencv-gstreamer-examples.git

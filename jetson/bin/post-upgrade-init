@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 set -e
 
 if ! which grealpath > /dev/null; then
@@ -26,12 +27,17 @@ if [ -z "$JTARGET" ]; then
   usage
 fi
 
+ssh-add -L | grep -q id_rsa || ssh-add ~/.ssh/id_rsa
+  
 echo "Updating basic home directory files..."
 
+ssh "$JTARGET" 'mkdir -p ~/external ~/src'
 rsync -a "$JETSON_DIR/home/" "$JTARGET:~/"
+git submodule update --init --recursive "$JETSON_DIR"
+rsync -a --force "$JETSON_DIR/external/buildOpenCVTX2/" "$JTARGET:~/src/buildOpenCVTX2"
 
 echo "Installing/upgrading"
 
-ssh "$JTARGET" post-upgrade-setup
+ssh -A "$JTARGET" "bash -l -c post-upgrade-setup"
 
 echo "Install complete!"

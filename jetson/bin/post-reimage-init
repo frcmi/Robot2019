@@ -37,7 +37,8 @@ wait_for_ssh() {
     ssh "$JUSER@$JIP" true || RC=$?
   done
   if [ $RC -eq 0 ]; then
-    echo "SSH server is back up!"
+    echo "SSH server is back up! Sleeping for 10 seconds to stabilize"
+    sleep 10
   else
     echo "Unexpected failure waiting for SSH server: RC=$RC"
   fi
@@ -50,6 +51,7 @@ if [ -z "$JIP" -o -z "$JPASS" ]; then
 fi
 
 if [ -e "$HOME/.ssh/id_rsa.pub" ]; then
+  ssh-add -L | grep -q id_rsa || ssh-add ~/.ssh/id_rsa
   echo "$HOME/.ssh/id_rsa.pub will be added to authorized_keys"
   SSH_PUB_KEY="$(cat ~/.ssh/id_rsa.pub)"
 
@@ -65,8 +67,19 @@ SSCRIPT="/tmp/jetson-init.sh"
 # Create the initial bootstrap script that we will run through SSH the first time
 
 cat << EOF > "$SSCRIPT"
+set -x
+cat << XXEOF > ~/initscript
+#!/bin/bash
+set -e
+set -x
 mkdir -p ~/.local/bin
 mkdir -p ~/bin
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+touch ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+touch ~/.ssh/config
+chmod 600 ~/.ssh/config
 
 if [[ ":\$PATH:" == *":\$HOME/bin:"* ]]; then
   echo "$HOME/bin already in PATH; not adding"
@@ -78,15 +91,8 @@ fi
 if [[ ":\$PATH:" == *":\$HOME/.local/bin:"* ]]; then
   echo "$HOME/.local/bin already in PATH; not adding"
 else
-  echo "Adding \$HOME/.local/bin to PATH in ~/.profile"
+  echo "Adding \$HOME/.local/bin to PATH"
   export PATH="/home/$JUSER/.local.bin:\$PATH"
-  cat << XEOF >> ~/.profile
-# set PATH so it includes user's .local/bin if it exists
-if [ -d "\\\$HOME/.local/bin" ] ; then
-    PATH="\\\$HOME/.local/bin:\\\$PATH"
-fi
-XEOF
-
 fi
 
 cat << XEOF > ~/.ssh/jetson-askpass.sh
@@ -111,20 +117,29 @@ rm ~/.ssh/jetson-askpass.sh
 unset SUDO_ASKPASS
 sudo echo "sudo now working without password"
 
-if [ ! -f ~/.ssh/authorized_keys -o -z "\$(grep "$SSH_PUB_KEY" ~/.ssh/authorized_keys )" ]; then
+if ! grep -q "$SSH_PUB_KEY" ~/.ssh/authorized_keys; then
   echo "$SSH_PUB_KEY" >> ~/.ssh/authorized_keys
   chmod 600 ~/.ssh/authorized_keys
   echo "SSH public key from host's id_rsa.pub successfully added to ~/.ssh/authorized_keys on device"
 else
   echo "SSH public key from host's id_rsa.pub already present in device's ~/.ssh/authorized_keys; not adding"
 fi;
-
+XXEOF
+chmod +x initscript
+./initscript
+rc=$?
+if [ $rc -ne 0 ]; then
+  echo "init script failed with exit code $rc"
+  exit $rc
+fi
+rm ~/initscript
+echo "init script succeeded"
 EOF
 
 export SSHPASS="$JPASS"
 RETCODE=0
-sshpass -e ssh -o StrictHostKeyChecking=no "$JUSER@$JIP" < "$SSCRIPT" || RETCODE=$?
-rm "$SSCRIPT" || true
+sshpass -e ssh -A -o StrictHostKeyChecking=no "$JUSER@$JIP" < "$SSCRIPT" || RETCODE=$?
+#rm "$SSCRIPT" || true
 
 if [ "$RETCODE" -ne 0 ]; then
   echo "Bootstrap script on jetson board failed with exit code $RETCODE"
@@ -137,7 +152,7 @@ ssh-keyscan -H "$JIP" >> ~/.ssh/known_hosts
 
 echo "Testing key-based SSH"
 unset SSHPASS
-ssh -oBatchMode=yes "$JUSER@$JIP" << EOF
+ssh -A -oBatchMode=yes "$JUSER@$JIP" << EOF
 echo "Key-based SSH successfully provisioned!"
 EOF
 
@@ -150,11 +165,11 @@ echo "Successfully populated initial home directory..."
 
 echo "Performing scripted initialization"
 
-ssh "$JUSER@$JIP" ./bin/initial-jetson-setup
+ssh -A "$JUSER@$JIP" "bash -l -c ./bin/initial-jetson-setup"
 
 echo "first phse complete! rebooting"
 
-ssh "$JUSER@$JIP" sudo reboot || true
+ssh -A "$JUSER@$JIP" sudo reboot || true
 
 sleep 5
 

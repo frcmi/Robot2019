@@ -3,11 +3,11 @@
 if [[ ":$PATH:" == *":$HOME/bin:"* ]]; then
   echo "$HOME/bin already in PATH; not adding"
 else
-  echo "Adding $HOME/bin to PATH"
+  echo "Adding $HOME/bin to PATH and .bashrc"
   export PATH="/home/bin:$PATH"
   cat << EOF >> ~/.bashrc
 
-if [[ ! ":\$PATH:" == *":\$HOME/bin:"* ]]; then
+if ! [[ ":\$PATH:" == *":\$HOME/bin:"* ]]; then
   export PATH="/home/bin:\$PATH"
 fi
 EOF
@@ -17,16 +17,38 @@ fi
 if [[ ":$PATH:" == *":$HOME/.local/bin:"* ]]; then
   echo "$HOME/.local/bin already in PATH; not adding"
 else
-  echo "Adding $HOME/.local/bin to PATH"
+  echo "Adding $HOME/.local/bin to PATH and .bashrc"
   export PATH="/home/.local/bin:$PATH"
   cat << EOF >> ~/.bashrc
 
-if [[ ! ":\$PATH:" == *":\$HOME/.local/bin:"* ]]; then
+if ! [[ ":\$PATH:" == *":\$HOME/.local/bin:"* ]]; then
   export PATH="/home/bin:\$PATH"
 fi
 EOF
 
 fi
 
+sudo add-apt-repository universe
+sudo add-apt-repository multiverse
 sudo apt-get update
 sudo apt-get upgrade -y
+
+sudo sed -i 's/^printf "Welcome to %s.*$/# \0/' /etc/update-motd.d/00-header
+sudo rm -f /tmp/05-mihs-header
+cat > /tmp/05-mihs-header << EOF
+#!/bin/bash
+
+BLUE='\\033[0;34m'
+NC='\\033[0m' # No Color
+
+echo -e "\${BLUE}Welcome to MIHS Robotics Jetson TX2 Computer Vision System \"\$(hostname)\"!\${NC}"
+echo
+printf "Running on %s (%s %s %s)\n" "$DISTRIB_DESCRIPTION" "\$(uname -o)" "\$(uname -r)" "\$(uname -m)"
+EOF
+
+chmod +x /tmp/05-mihs-header
+sudo chown root.root /tmp/05-mihs-header
+sudo mv /tmp/05-mihs-header /etc/update-motd.d/
+
+sudo rm -f /etc/update-motd.d/10-help-text
+sudo rm -f /etc/update-motd.d/91-release-upgrade
