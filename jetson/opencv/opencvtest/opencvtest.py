@@ -60,7 +60,7 @@ import GripPipeline
 
 print("OpenCV version is ", cv2.__version__)
 
-cap = cv2.VideoCapture("v4l2src device=/dev/video1 ! video/x-raw,framerate=30/1,width=1920,height=1080 ! appsink")
+cap = cv2.VideoCapture("v4l2src device=/dev/video0 ! video/x-raw,framerate=30/1,width=1920,height=1080 ! appsink")
 gp = GripPipeline.GripPipeline()
 
 class Target(object):
@@ -88,7 +88,7 @@ while(True):
 
     contours = gp.filter_contours_output
 
-    cv2.drawContours(frame, contours, -1, (255,0,0), 3)
+    #cv2.drawContours(frame, contours, -1, (255,0,0), 3)
 
     if len(contours) < 2:
         print("Could not find 2 potential target contours")
@@ -142,7 +142,7 @@ while(True):
                     # roll the convex hull matrix so that the bottom-right of the right strip is first
                     if ishort1 != 0:
                         numpy.roll(hull, 6-ishort1)
-
+                    #defines 4 sided shape to represent the target board
                     outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)
 
                     print("outerCorners=", outerCorners)
