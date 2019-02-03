@@ -60,7 +60,7 @@ import GripPipeline
 
 print("OpenCV version is ", cv2.__version__)
 
-cap = cv2.VideoCapture("v4l2src device=/dev/video0 ! video/x-raw,framerate=30/1,width=1920,height=1080 ! appsink")
+cap = cv2.VideoCapture("v4l2src device=/dev/video1 ! video/x-raw,framerate=30/1,width=1920,height=1080 ! appsink")
 gp = GripPipeline.GripPipeline()
 
 class Target(object):
@@ -68,7 +68,7 @@ class Target(object):
         self.contour0 = contour
         self.boundingRect0 = boundingBox
         self.perimeter0 = cv2.arcLength(self.contour0, True)
-        epsilon = 0.1 * self.perimeter0
+        epsilon = 0.10 * self.perimeter0
         self.approx = cv2.approxPolyDP(self.contour0, epsilon, True)
         self.valid = True
         self.reason = None
@@ -88,7 +88,7 @@ while(True):
 
     contours = gp.filter_contours_output
 
-    #cv2.drawContours(frame, contours, -1, (255,0,0), 3)
+    cv2.drawContours(frame, contours, -1, (255,0,0), 3)
 
     if len(contours) < 2:
         print("Could not find 2 potential target contours")
@@ -105,7 +105,7 @@ while(True):
                 if not target.reason is None:
                     print("Excluded target: %s" % target.reason)
 
-        cv2.drawContours(frame, [x.approx for x in targets], -1, (0,0, 255), 3)
+        cv2.drawContours(frame, [x.approx for x in targets], -1, (255,255,0), 3)
 
         if len(targets) == 2:
             print("Found exactly 2 targets!")
@@ -114,35 +114,62 @@ while(True):
             allpts = numpy.concatenate((targets[0].approx, targets[1].approx))
             # print('allpts=', allpts)
             hull = cv2.convexHull(allpts, False)
+            cv2.drawContours(frame, [hull], -1, (255,0,0), 3)
             if len(hull) != 6:
                 print("Hull does not have 6 vertices :(")
             else:
                 print("Hull has 6 vertices!")
                 print("hull=", hull)
-                # Hull is in clockwise order (X is to right, Y is down). Sort the segments by length
-                def seglen2(i):
-                    p1 = hull[i]
-                    p2 = hull[(i+1)%6]
-                    return (p2[0][0]-p1[0][0])**2 + (p2[0][1]-p1[0][1])**2
+                # Hull is in counterclockwise order (X is to right, Y is down). Sort the segments by angle
 
-                segments = [i for i in range(6)]
+                # interior angle in radians around vertex
+                def interiorangle(i):
+                    a = hull[(i+1)%6][0]
+                    b = hull[i][0]
+                    c = hull[(i-1)%6][0]
+                    ang = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
+                    print "angle for vertex " + str(i) + " is " + str(ang % 360)
+                    return (ang+360) % 360
 
-                segments.sort(key=lambda x: seglen2(x))
+                vertices = [i for i in range(6)]
 
-                ishort1 = segments[0]
-                ishort2 = segments[1]
-                dshort = (ishort1 - ishort2 + 6) % 6
-                if dshort == 4:
-                    ishort1, ishort2 = (ishort2, ishort1)
-                    dshort = 2
-                if dshort == 2:
-                    # hull[ishort1] is the bottom right of the right tape strip
+                vertices.sort(key=lambda x: interiorangle(x))
+
+                ibig1 = vertices[4]
+                ibig2 = vertices[5]
+                print "ibig1="+str(ibig1)
+                print "ibig2="+str(ibig2)
+                dbig = (ibig1 - ibig2) % 6
+                if dbig == 1:
+                    ibig1, ibig2 = (ibig2, ibig1)
+                    dbig = 5
+                if dbig == 5:
+                    # hull[ibig1] is the bottom right of the right tape strip
                     print("Determined target orientation")
 
                     # roll the convex hull matrix so that the bottom-right of the right strip is first
-                    if ishort1 != 0:
-                        numpy.roll(hull, 6-ishort1)
-                    #defines 4 sided shape to represent the target board
+                    # we want the origin to be one vertex clockwise from ibig1, so ibig1 = 1
+                    def rightRotate(lists, num): 
+                        output_list = [] 
+      
+                        # Will add values from n to the new list 
+                        for item in range(len(lists) - num, len(lists)): 
+                            output_list.append(lists[item]) 
+      
+                        # Will add the values before 
+                        # n to the end of new list     
+                        for item in range(0, len(lists) - num):  
+                            output_list.append(lists[item]) 
+          
+                        return output_list 
+
+                    rollamount = (1-ibig1)%6
+                    if (rollamount != 0):
+                        hull = rightRotate(hull, rollamount)
+                        print("Rolling by " + str(rollamount))
+                    print hull;
+
+                    cv2.circle(frame, (hull[0][0][0], hull[0][0][1]), 10, (0,255,0), -1)
                     outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)
 
                     print("outerCorners=", outerCorners)
@@ -176,6 +203,8 @@ while(True):
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+
 
 # When everything done, release the capture
 cap.release()

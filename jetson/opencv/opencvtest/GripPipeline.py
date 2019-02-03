@@ -33,9 +33,9 @@ class GripPipeline:
         self.find_contours_output = None
 
         self.__filter_contours_contours = self.find_contours_output
-        self.__filter_contours_min_area = 1000.0
-        self.__filter_contours_min_perimeter = 250.0
-        self.__filter_contours_min_width = 100.0
+        self.__filter_contours_min_area = 100.0
+        self.__filter_contours_min_perimeter = 200.0
+        self.__filter_contours_min_width = 50.0
         self.__filter_contours_max_width = 250.0
         self.__filter_contours_min_height = 300.0
         self.__filter_contours_max_height = 1000.0
@@ -154,6 +154,7 @@ class GripPipeline:
         Returns:
             Contours as a list of numpy.ndarray.
         """
+
         output = []
         for contour in input_contours:
             x, y, w, h = cv2.boundingRect(contour)
