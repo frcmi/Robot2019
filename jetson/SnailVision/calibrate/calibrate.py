@@ -1,94 +1,112 @@
-import cv2
-assert cv2.__version__[0] == '3', 'The fisheye module requires opencv version >= 3.0.0'
-
+#!/usr/bin/env python3
 import numpy as np
-import os
+import cv2
 import glob
 import json
 
-CHECKERBOARD = (6,9)
+bw = 9
+bh = 7
 
-subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
-calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_CHECK_COND+cv2.fisheye.CALIB_FIX_SKEW
+# termination criteria
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-objp = np.zeros((1, CHECKERBOARD[0]*CHECKERBOARD[1], 3), np.float32)
-objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
+# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+objp = np.zeros((bw*bh,3), np.float32)
+objp[:,:2] = np.mgrid[0:bh,0:bw].T.reshape(-1,2)
 
-_img_shape = None
+# Arrays to store object points and image points from all the images.
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
-images = glob.glob('*.jpg')
+images = glob.glob('images/*.jpg')
 
 for fname in images:
+    print("Processing %s" % fname)
     img = cv2.imread(fname)
-    if _img_shape == None:
-        _img_shape = img.shape[:2]
-    else:
-        assert _img_shape == img.shape[:2], "All images must share the same size."
-
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
     # Find the chess board corners
-    ret, corners = cv2.findChessboardCorners(gray, CHECKERBOARD, cv2.CALIB_CB_ADAPTIVE_THRESH+cv2.CALIB_CB_FAST_CHECK+cv2.CALIB_CB_NORMALIZE_IMAGE)
+    ret, corners = cv2.findChessboardCorners(gray, (bh,bw),None)
+
     # If found, add object points, image points (after refining them)
     if ret == True:
         objpoints.append(objp)
-        cv2.cornerSubPix(gray,corners,(3,3),(-1,-1),subpix_criteria)
-        imgpoints.append(corners)
 
-N_OK = len(objpoints)
-K = np.zeros((3, 3))
-D = np.zeros((4, 1))
-rvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_OK)]
-tvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_OK)]
-rms, _, _, _, _ = \
-    cv2.fisheye.calibrate(
-        objpoints,
-        imgpoints,
-        gray.shape[::-1],
-        K,
-        D,
-        rvecs,
-        tvecs,
-        calibration_flags,
-        (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6)
-    )
+        corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+        imgpoints.append(corners2)
 
-#prints output
-print("Found " + str(N_OK) + " valid images for calibration")
-print("DIM=" + str(_img_shape[::-1]))
-print("K=np.array(" + str(K.tolist()) + ")")
-print("D=np.array(" + str(D.tolist()) + ")")
+        # Draw and display the corners
+        img2 = cv2.drawChessboardCorners(img, (bh,bw), corners2,ret)
+        cv2.imshow('img',img2)
+        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
+        assert ret
+        h,  w = img.shape[:2]
+        newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+        dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+
+        # crop the image
+        if roi != (0, 0, 0, 0):
+          x,y,w,h = roi
+          dst = dst[y:y+h, x:x+w]
+        else:
+          print("No ROI found for %s" % fname)
+        #cv2.imwrite('calibresult.png', dst)
+        #cv2.imshow('corrected', dst)
+        #cv2.waitKey(0)
+
+    else:
+        print("unable to locate corners in %f" % fname)
+
+#cv2.destroyAllWindows()
+
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
+
+print("ret: ", ret)
+print("mtx: ", mtx)
+print("dist: ", dist)
+print("rvecs: ", rvecs)
+print("tvecs: ",tvecs)
 
 #stores output as json in fisheyecalibration.txt
 
 data = {}
 
-data['DIM'] = str(_img_shape[::-1])
-data['K'] = str(K.tolist())
-data['D'] = str(D.tolist())
+data['ret'] = ret
+data['mtx'] = mtx
+data['dist'] = dist
+data['rvecs'] = rvecs
+data['tvecs'] = tvecs
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 with open('fisheyecalibration.txt', 'w') as outfile:
-    json.dump(data, outfile)
+    json.dump(data, outfile, cls=NumpyEncoder)
+
 """
 To load the the json into an opencv file, use this code:
-DIM = 0
-K = 0
-D = 0
+
 with open(calibration/fisheyecalibration.txt as json_file:
     data = json.load(json_file)
-    DIM=data['DIM']
-    K=np.array(data['K'])
-    D=np.array(data['D'])
+    ret=data['ret']
+    mtx = data['mtx']
+    dist = data['dist']
+    rvecs = np.asarray(data['rvecs'])
+    tvecs = np.asarray(data['tvecs'])
 
 Then, you can do:
 
 def undistort(img):
+    h,  w = img.shape[:2]
+    newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+    # undistort
+    dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
 
-    h,w = img.shape[:2]
-
-    map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, DIM, cv2.CV_16SC2)
-    undistorted_img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-
-    return undistorted_img
+    # crop the image
+    x,y,w,h = roi
+    dst = dst[y:y+h, x:x+w]
+    return dst
 """

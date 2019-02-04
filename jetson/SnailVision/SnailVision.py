@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 
 import numpy as np
 import cv2
@@ -7,7 +7,58 @@ import numpy
 import imutils.contours
 import math
 import json
+import subprocess
 
+#Global configuration
+fisheyeparamspath = "calibration/fisheyecalibration.txt"
+camerapath = "/dev/video0"
+
+#Camera configuration
+exposureTime = 41
+contrast = 128
+saturation = 128
+sharpness = 128
+gain = 0
+brightness = 107
+white_balance_temperature = 5850
+
+cmdbeginning = "v4l2-ctl -d "+camerapath+" -k "
+cmdends = [
+    "--set-ctrl=exposure_auto=1",
+    "--set-ctrl=exposure_auto_priority=1",
+    "--set-ctrl=exposure_absolute="+str(exposureTime),
+    "--set-ctrl=contrast="+str(contrast),
+    "--set-ctrl=saturation="+str(saturation),
+    "--set-ctrl=sharpness="+str(sharpness),
+    "--set-ctrl=gain=0",
+    "--set-ctrl=brightness="+str(brightness),
+    "--set-ctrl=white_balance_temperature_auto=0",
+    "--set-ctrl=white_balance_temperature="+str(white_balance_temperature),
+    "--set-ctrl=power_line_frequency=2",
+    "--set-ctrl=backlight_compensation=1",
+    "--set-ctrl=focus_auto=0",
+    "--set-ctrl=focus_absolute=0"
+]
+
+for i in cmdends:
+    subprocess.call((cmdbeginning+i).split())
+
+# Reads fisheye configuration
+noFisheye = False
+
+try:
+    with open(fisheyeparamspath) as json_file:
+        data = json.load(json_file)
+        ret=data['ret']
+        mtx = data['mtx']
+        dist = data['dist']
+        rvecs = np.asarray(data['rvecs'])
+        tvecs = np.asarray(data['tvecs'])
+except:
+    print ("Could not read fisheye params @ " + fisheyeparamspath)
+    noFisheye = True
+
+#Calculations for locations of vertices on the board
 tapeAngleDegrees=14.5
 tapeAngle = tapeAngleDegrees / 180.0 * math.pi  # angle of each piece of tape from verticle
 tapeGapInches = 8.0      # space between closest point of two pieces of tape
@@ -60,7 +111,7 @@ import GripPipeline
 
 print("OpenCV version is ", cv2.__version__)
 
-cap = cv2.VideoCapture("v4l2src device=/dev/video1 ! video/x-raw,framerate=30/1,width=1920,height=1080 ! appsink")
+cap = cv2.VideoCapture("v4l2src device="+camerapath+" ! video/x-raw,framerate=30/1,width=1920,height=1080 ! appsink")
 gp = GripPipeline.GripPipeline()
 
 class Target(object):
@@ -80,9 +131,28 @@ class Target(object):
     def minx(self):
         return self.boundingRect0[0]
 
+#undistorts a frame given parameters
+def undistort(img):
+    h,  w = img.shape[:2]
+    newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+    # undistort
+    dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+
+    # crop the image
+    x,y,w,h = roi
+    dst = dst[y:y+h, x:x+w]
+    return dst
+
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
+    
+    #adjusts for fisheye
+    try:
+        frame = undistort(frame)
+    except:
+        if not noFisheye:
+            print("Could not undistort frame")
 
     gp.process(frame)
 
@@ -128,7 +198,7 @@ while(True):
                     b = hull[i][0]
                     c = hull[(i-1)%6][0]
                     ang = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
-                    print "angle for vertex " + str(i) + " is " + str(ang % 360)
+                    print ("angle for vertex " + str(i) + " is " + str(ang % 360))
                     return (ang+360) % 360
 
                 vertices = [i for i in range(6)]
@@ -137,8 +207,8 @@ while(True):
 
                 ibig1 = vertices[4]
                 ibig2 = vertices[5]
-                print "ibig1="+str(ibig1)
-                print "ibig2="+str(ibig2)
+                print ("ibig1="+str(ibig1))
+                print ("ibig2="+str(ibig2))
                 dbig = (ibig1 - ibig2) % 6
                 if dbig == 1:
                     ibig1, ibig2 = (ibig2, ibig1)
@@ -167,7 +237,7 @@ while(True):
                     if (rollamount != 0):
                         hull = rightRotate(hull, rollamount)
                         print("Rolling by " + str(rollamount))
-                    print hull;
+                    print (hull)
 
                     cv2.circle(frame, (hull[0][0][0], hull[0][0][1]), 10, (0,255,0), -1)
                     outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)

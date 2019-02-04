@@ -1,8 +1,0 @@
-#!/bin/bash
-
-v4l2-ctl -d /dev/video1 -k --set-ctrl=focus_auto=0
-v4l2-ctl -d /dev/video1 -k --set-ctrl=white_balance_temperature_auto=0
-v4l2-ctl -d /dev/video1 -k --set-ctrl=exposure_auto_priority=0
-v4l2-ctl -d /dev/video1 -k --set-ctrl=exposure_auto=1
-v4l2-ctl -d /dev/video1 -k --set-ctrl=exposure_absolute=190 #Wanted exposure goes here
-
