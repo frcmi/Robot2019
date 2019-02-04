@@ -10,7 +10,7 @@ import json
 import subprocess
 
 #Global configuration
-fisheyeparamspath = "calibration/fisheyecalibration.txt"
+fisheyeparamspath = "calibrate/fisheyecalibration.txt"
 camerapath = "/dev/video0"
 
 #Camera configuration
@@ -49,13 +49,18 @@ noFisheye = False
 try:
     with open(fisheyeparamspath) as json_file:
         data = json.load(json_file)
+        global ret
+        global mtx
+        global dist
+        global rvecs
+        global tvecs
         ret=data['ret']
-        mtx = data['mtx']
-        dist = data['dist']
+        mtx = np.asarray(data['mtx'])
+        dist = np.asarray(data['dist'])
         rvecs = np.asarray(data['rvecs'])
         tvecs = np.asarray(data['tvecs'])
-except:
-    print ("Could not read fisheye params @ " + fisheyeparamspath)
+except Exception as e:
+    print ("Could not read fisheye params @ " + fisheyeparamspath, e)
     noFisheye = True
 
 #Calculations for locations of vertices on the board
@@ -119,7 +124,7 @@ class Target(object):
         self.contour0 = contour
         self.boundingRect0 = boundingBox
         self.perimeter0 = cv2.arcLength(self.contour0, True)
-        epsilon = 0.10 * self.perimeter0
+        epsilon = 0.09 * self.perimeter0
         self.approx = cv2.approxPolyDP(self.contour0, epsilon, True)
         self.valid = True
         self.reason = None
@@ -148,17 +153,18 @@ while(True):
     ret, frame = cap.read()
     
     #adjusts for fisheye
+    """
     try:
         frame = undistort(frame)
     except:
         if not noFisheye:
             print("Could not undistort frame")
-
+    """
     gp.process(frame)
 
     contours = gp.filter_contours_output
 
-    cv2.drawContours(frame, contours, -1, (255,0,0), 3)
+    #cv2.drawContours(frame, contours, -1, (255,0,0), 3)
 
     if len(contours) < 2:
         print("Could not find 2 potential target contours")
@@ -175,7 +181,7 @@ while(True):
                 if not target.reason is None:
                     print("Excluded target: %s" % target.reason)
 
-        cv2.drawContours(frame, [x.approx for x in targets], -1, (255,255,0), 3)
+        cv2.drawContours(frame, [x.approx for x in targets], -1, (255,0,0), 3)
 
         if len(targets) == 2:
             print("Found exactly 2 targets!")
@@ -184,12 +190,11 @@ while(True):
             allpts = numpy.concatenate((targets[0].approx, targets[1].approx))
             # print('allpts=', allpts)
             hull = cv2.convexHull(allpts, False)
-            cv2.drawContours(frame, [hull], -1, (255,0,0), 3)
+            #cv2.drawContours(frame, [hull], -1, (255,0,0), 3)
             if len(hull) != 6:
                 print("Hull does not have 6 vertices :(")
             else:
                 print("Hull has 6 vertices!")
-                print("hull=", hull)
                 # Hull is in counterclockwise order (X is to right, Y is down). Sort the segments by angle
 
                 # interior angle in radians around vertex
@@ -198,7 +203,6 @@ while(True):
                     b = hull[i][0]
                     c = hull[(i-1)%6][0]
                     ang = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
-                    print ("angle for vertex " + str(i) + " is " + str(ang % 360))
                     return (ang+360) % 360
 
                 vertices = [i for i in range(6)]
@@ -207,8 +211,6 @@ while(True):
 
                 ibig1 = vertices[4]
                 ibig2 = vertices[5]
-                print ("ibig1="+str(ibig1))
-                print ("ibig2="+str(ibig2))
                 dbig = (ibig1 - ibig2) % 6
                 if dbig == 1:
                     ibig1, ibig2 = (ibig2, ibig1)
@@ -236,19 +238,48 @@ while(True):
                     rollamount = (1-ibig1)%6
                     if (rollamount != 0):
                         hull = rightRotate(hull, rollamount)
-                        print("Rolling by " + str(rollamount))
-                    print (hull)
 
                     cv2.circle(frame, (hull[0][0][0], hull[0][0][1]), 10, (0,255,0), -1)
                     outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)
+                    objp2d = tapeOuterCornersNormalized
+                    imgp = outerCorners
+                    objp = np.concatenate((objp2d,np.zeros((4,1), dtype=objp2d.dtype)), axis=1)
+                    objp = objp.reshape(4,1,3)
+                    imgp = imgp.reshape(4,1,2)
+                    #Finds rotation and translation vectors
+                    retval, rvec, tvec, inliers = cv2.solvePnPRansac(objp, imgp, mtx, dist)
+                    print "retval", retval
+                    print "rvec", rvec
+                    print "tvec", tvec
+                    print "inliers", inliers
 
-                    print("outerCorners=", outerCorners)
-                    print("outerCornersNormalized=", tapeOuterCornersNormalized)
+                    dst, jacobian = cv2.Rodrigues(rvec)
+                    x = tvec[0][0]
+                    y = tvec[2][0]
+                    t = (math.asin(-dst[0][2]))
 
+                    print "X", x, "Y", y, "Angle", t
+                    print "90-t", (math.pi/2) - t
+
+                    Rx = y * (math.cos((math.pi/2) - t))
+                    Ry = y * (math.sin((math.pi/2) - t))
+
+                    print "rx", Rx, "ry", Ry
+                    
+                    #Draw an xyz axis in 3d space
+                    originpt, _ = cv2.projectPoints(np.float32([3,0,0]).reshape(1,1,3), rvec, tvec, mtx, dist)
+                    axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
+                    # project 3D points to image plane
+                    imgpts, jac = cv2.projectPoints(axis, rvec, tvec, mtx, dist)
+                    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[0].ravel()), (255,0,0), 5)
+                    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[1].ravel()), (0,255,0), 5)
+                    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[2].ravel()), (0,0,255), 5)
+
+                    """
                     img2Normal = cv2.getPerspectiveTransform(outerCorners, tapeOuterCornersNormalized)
                     print("img2Normal=", img2Normal)
                     normal2Img = cv2.getPerspectiveTransform(tapeOuterCornersNormalized, outerCorners)
-                    # normal2Img = cv2.invert(img2Normal)
+                    #normal2Img = cv2.invert(img2Normal)
                     print("normal2Img=", normal2Img)
                     tapeArrow = cv2.perspectiveTransform(tapeArrowNormalized, normal2Img)
                     print("tapeArrow=",tapeArrow)
@@ -256,7 +287,7 @@ while(True):
                     print("tapeArrowCnt=",tapeArrowCnt)
 
                     cv2.drawContours(frame, [tapeArrowCnt], -1, (0, 255, 0), 3)
-
+                    """
                 else:
                     print("Two shortest segments of hull are not in correct position")
 
