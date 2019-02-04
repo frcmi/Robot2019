@@ -124,7 +124,7 @@ class Target(object):
         self.contour0 = contour
         self.boundingRect0 = boundingBox
         self.perimeter0 = cv2.arcLength(self.contour0, True)
-        epsilon = 0.09 * self.perimeter0
+        epsilon = 0.1 * self.perimeter0
         self.approx = cv2.approxPolyDP(self.contour0, epsilon, True)
         self.valid = True
         self.reason = None
@@ -239,7 +239,7 @@ while(True):
                     if (rollamount != 0):
                         hull = rightRotate(hull, rollamount)
 
-                    cv2.circle(frame, (hull[0][0][0], hull[0][0][1]), 10, (0,255,0), -1)
+                    
                     outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)
                     objp2d = tapeOuterCornersNormalized
                     imgp = outerCorners
@@ -267,13 +267,17 @@ while(True):
                     print "rx", Rx, "ry", Ry
                     
                     #Draw an xyz axis in 3d space
-                    originpt, _ = cv2.projectPoints(np.float32([3,0,0]).reshape(1,1,3), rvec, tvec, mtx, dist)
-                    axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
+                    originpt, _ = cv2.projectPoints(np.float32([0,0,0]).reshape(1,1,3), rvec, tvec, mtx, dist)
+                    axis = np.float32([[3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
                     # project 3D points to image plane
                     imgpts, jac = cv2.projectPoints(axis, rvec, tvec, mtx, dist)
                     cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[0].ravel()), (255,0,0), 5)
                     cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[1].ravel()), (0,255,0), 5)
                     cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[2].ravel()), (0,0,255), 5)
+                    cv2.circle(frame, tuple(originpt.ravel()), 10, (255,225,225), -1)
+                    cv2.circle(frame, tuple(imgpts[0].ravel()), 10, (225,0,0), -1)
+                    cv2.circle(frame, tuple(imgpts[1].ravel()), 10, (0,255,0), -1)
+                    cv2.circle(frame, tuple(imgpts[2].ravel()), 10, (0,0,255), -1)
 
                     """
                     img2Normal = cv2.getPerspectiveTransform(outerCorners, tapeOuterCornersNormalized)
