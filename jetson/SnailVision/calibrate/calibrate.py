@@ -55,7 +55,7 @@ for fname in images:
         #cv2.waitKey(0)
 
     else:
-        print("unable to locate corners in %f" % fname)
+        print("unable to locate corners in %s" % fname)
 
 #cv2.destroyAllWindows()
 
