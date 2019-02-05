@@ -29,3 +29,5 @@ fi
 git submodule update --init --recursive "$JETSON_DIR"
 ssh "$JTARGET" 'mkdir -p ~/external ~/src'
 rsync -a "$JETSON_DIR/home/" "$JTARGET:~/"
+rsync -a "$JETSON_DIR/SnailVision/" "$JTARGET:~/SnailVision/"
+

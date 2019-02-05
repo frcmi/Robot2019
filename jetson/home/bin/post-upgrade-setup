@@ -85,9 +85,11 @@ ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
 sudo -H pip install --upgrade pip
 
-# PLEASE KEEP THIS LIST IN ALPHABETICAL ORDER
-sudo -H pip install \
-  imutils \
+for pipc in pip pip3; do
+  # PLEASE KEEP THIS LIST IN ALPHABETICAL ORDER
+  sudo -H $pipc install \
+    imutils \
+done
 
 
 if ! [ -e ~/.pyenv/bin/pyenv ]; then
@@ -187,6 +189,6 @@ if ! pkg-config gstreamer-rtsp-server-1.0; then
 fi
 
 for pipc in pip pip3; do
- $pipc install numpy vext vext.gi PyGObject
+ $pipc install numpy vext vext.gi PyGObject imutils
 done 
 	
