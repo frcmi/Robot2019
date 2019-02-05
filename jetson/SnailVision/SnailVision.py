@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import numpy as np
 import cv2
@@ -9,9 +9,11 @@ import math
 import json
 import subprocess
 
+import GripPipeline
+
 #Global configuration
 fisheyeparamspath = "calibrate/fisheyecalibration.txt"
-camerapath = "/dev/video0"
+camerapath = "/dev/video1"
 
 #Camera configuration
 exposureTime = 41
@@ -60,7 +62,7 @@ try:
         rvecs = np.asarray(data['rvecs'])
         tvecs = np.asarray(data['tvecs'])
 except Exception as e:
-    print ("Could not read fisheye params @ " + fisheyeparamspath, e)
+    print("Could not read fisheye params @ " + fisheyeparamspath, e)
     noFisheye = True
 
 #Calculations for locations of vertices on the board
@@ -112,7 +114,6 @@ tapeArrowNormalized = numpy.array(tapeArrowList, numpy.float32)
 
 print("tapeArrowNormalized=", tapeArrowNormalized)
 
-import GripPipeline
 
 print("OpenCV version is ", cv2.__version__)
 
@@ -248,24 +249,24 @@ while(True):
                     imgp = imgp.reshape(4,1,2)
                     #Finds rotation and translation vectors
                     retval, rvec, tvec, inliers = cv2.solvePnPRansac(objp, imgp, mtx, dist)
-                    print "retval", retval
-                    print "rvec", rvec
-                    print "tvec", tvec
-                    print "inliers", inliers
+                    print("retval", retval)
+                    print("rvec", rvec)
+                    print("tvec", tvec)
+                    print("inliers", inliers)
 
                     dst, jacobian = cv2.Rodrigues(rvec)
                     x = tvec[0][0]
                     y = tvec[2][0]
                     t = (math.asin(-dst[0][2]))
 
-                    print "X", x, "Y", y, "Angle", t
-                    print "90-t", (math.pi/2) - t
+                    print("X", x, "Y", y, "Angle", t)
+                    print("90-t", (math.pi/2) - t)
 
                     Rx = y * (math.cos((math.pi/2) - t))
                     Ry = y * (math.sin((math.pi/2) - t))
 
-                    print "rx", Rx, "ry", Ry
-                    
+                    print("rx", Rx, "ry", Ry)
+
                     #Draw an xyz axis in 3d space
                     originpt, _ = cv2.projectPoints(np.float32([0,0,0]).reshape(1,1,3), rvec, tvec, mtx, dist)
                     axis = np.float32([[3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
