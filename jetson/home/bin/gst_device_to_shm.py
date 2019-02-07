@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import time
 import cv2
 
@@ -6,7 +8,7 @@ fps = 30.
 frame_width = 1920
 frame_height = 1080
 # Create capture
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 # Set camera properties
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
@@ -18,7 +20,7 @@ gst_str = "appsrc ! shmsink socket-path=/tmp/foo sync=true wait-for-connection=f
 
 # Check if cap is open
 if cap.isOpened() is not True:
-    print "Cannot open camera. Exiting."
+    print("Cannot open camera. Exiting.")
     quit()
 
 # Create videowriter as a SHM sink
@@ -35,7 +37,7 @@ while True:
         # Write to SHM
         out.write(frame)
     else:
-        print "Camera error."
+        print("Camera error.")
         time.sleep(10)
 
 cap.release()

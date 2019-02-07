@@ -5,11 +5,11 @@ set -e
 OFILE="$1"
 
 usage() {
-  echo 'capture-frame-onboard -- capture a single video frame from onboard jetson cam (normalized to 1920x1080) as JPEG'
+  echo 'capture-frame-logitech -- capture a single video frame from logitech cam (normalized to 1920x1080) as JPEG'
   echo >&2
   echo "  Usage is:" >&2
   echo >&2
-  echo "    capture-frame-onboard <output-file>"
+  echo "    capture-frame-logitech <output-file>"
   exit 1
 }
 
@@ -18,9 +18,8 @@ if [ -z "$OFILE" ]; then
 fi
 
 gst-launch-1.0 \
-    nvcamerasrc num-buffers=1 ! \
+    v4l2src device=/dev/video1 num-buffers=1 ! \
     'video/x-raw(memory:NVMM),width=1920, height=1080, framerate=30/1, format=NV12' ! \
-    nvvidconv ! \
     jpegenc ! \
     filesink location="$OFILE"
 

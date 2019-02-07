@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import Any
 
 import cv2
 #import numpy
@@ -16,7 +17,8 @@ class GripPipeline:
         """
 
         self.__blur_type = BlurType.Box_Blur
-        self.__blur_radius = 4.504504504504505
+        # self.__blur_radius = 4.504504504504505
+        self.__blur_radius = 2.0
 
         self.blur_output = None
 
@@ -47,6 +49,8 @@ class GripPipeline:
 
         self.filter_contours_output = None
 
+    def __new__(cls) -> Any:
+        return super().__new__(cls)
 
     def process(self, source0):
         """

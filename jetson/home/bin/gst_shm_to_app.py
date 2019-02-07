@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import cv2
 
 # WORKING: cap = cv2.VideoCapture("shmsrc socket-path=/tmp/foo ! video/x-raw, format=BGR ,width=1920,height=1080,framerate=30/1 ! videoconvert ! video/x-raw, format=BGR ! appsink")
