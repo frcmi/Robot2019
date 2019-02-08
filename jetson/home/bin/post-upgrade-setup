@@ -78,6 +78,7 @@ sudo apt-get install -y \
   qt5-default \
   v4l-utils \
   zlib1g-dev \
+  # <End-of-list>
 
 
 ssh-keygen -R github.com
@@ -89,6 +90,7 @@ for pipc in pip pip3; do
   # PLEASE KEEP THIS LIST IN ALPHABETICAL ORDER
   sudo -H $pipc install \
     imutils \
+    # <End-of-list>
 done
 
 
