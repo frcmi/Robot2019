@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.*;
 
 
 //A subsystem to control a single motor, to test the code or system
-public class Pneumatics extends Manipulator {
+public class Pneumatics extends Subsystem {
 
     // Subsystems are singleton classes, so there should only be one of each class. Instead
     // of calling the constructor directly, the client should use getInstance to prevent duplication

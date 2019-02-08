@@ -1,14 +1,45 @@
 package frc.robot.commands;
 
 import frc.robot.Robot;
+import frc.robot.lib.trajectory.Spline;
+import frc.robot.lib.util.RobotMap;
 
 import edu.wpi.first.wpilibj.command.Command;
 
 public class FollowSpline extends CommandBase {
 
-    public String name; // The name to be displayed as a choice at the SmartDashboard
+    //Keeps track of the position of the front center of the robot
+    public class Position{
+        float x = 0; //Measured in meters, from the initial position of the robot
+        float y = 0; //Measured in meters, from the initial position of the robot
+        float theta = 0; //Angle of the robot, measured in radians counterclockwise from the x axis
+        
+        // time interval is the how many seconds between calls to position
+        // distBetweenWheels is the distance between wheels in meters
+        public Position(){
+            this.x = 0;
+            this.y = 0;
+            this.theta = Math.PI / 2;
+        }
 
-    public FollowSpline() {
+        //Updates the x, y, and theta variables given encoder deltas
+        public void updatePosition(float leftencoderdelta, float rightencoderdelta){
+            float deltaTheta = (rightencoderdelta-leftencoderdelta)/(2*Math.PI*RobotMap.distBetweenWheels)
+            float averageTheta = this.theta + deltaTheta / 2;
+            float averageTraversal = (leftencoderdelta + rightencoderdelta)/2;
+            this.x += averageTraversal * Math.cos(averageTheta);
+            this.y += averageTraversal * Math.sin(averageTheta);
+            this.theta += deltaTheta;
+        }
+
+    }
+
+    
+    public String name; // The name to be displayed as a choice at the SmartDashboard
+    public Spine path;
+    public Position position;
+
+    public FollowSpline(Spline s) {
         name = "Follow Spline";
 
         //Requires defines any subsystem dependencies, so more than one command can't
@@ -19,7 +50,7 @@ public class FollowSpline extends CommandBase {
     // Called when the command starts running
     @Override
     public void start() {
-        super.start();
+        position = new Position();
     }
 
     //Called periodically while the command is running

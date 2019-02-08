@@ -7,14 +7,14 @@
 
 package frc.robot;
 
-import frc.robot.subsystems.TestMotor;
 import frc.robot.commands.Autonomous1;
-import frc.robot.commands.MoveTestMotor;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.commands.GoForward;
 import frc.robot.commands.Teleop;
-import frc.robot.util.*;
+import frc.robot.commands.UpdateInfo;
+import frc.robot.commands.ControlPneumatics;
+import frc.robot.lib.util.*;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.cscore.UsbCamera;
@@ -37,7 +37,7 @@ import java.util.*;
  * project.
  */
 public class Robot extends TimedRobot {
-    private SendableChooser<AutonomousCommand> autonomousChooser = new SendableChooser<>(); //SendableChooser for choosing autonomous program
+    private SendableChooser<AutonomousCommand> autonomousChooser = new SendableChooser<AutonomousCommand>(); //SendableChooser for choosing autonomous program
     private Set<AutonomousCommand> autonomousCommands; // The set of all autonomous routines
     public AutonomousCommand autonomousCommand; // The command to be run in the autonomous
     public RobotInfo info; //Static information about the robot (team and starting position)
@@ -80,7 +80,9 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         //System.out.println("Autonomous selected: " + autonomousChooser.getSelected().name);
         //autonomousCommand = autonomousChooser.getSelected();
-        autonomousCommand.start();
+        Scheduler.getInstance().removeAll();
+        Scheduler.getInstance().add(new UpdateInfo());
+        Scheduler.getInstance.add(autonomousCommand);
     }
 
     // Called periodically during autonomous
@@ -94,7 +96,8 @@ public class Robot extends TimedRobot {
     // Called when the robot is put into operator control mode
     @Override
     public void teleopInit() {
-        System.out.println("adding a new GoForward to scheduler");
+        Scheduler.getInstance().removeAll();
+        Scheduler.getInstance().add(new UpdateInfo());
         Scheduler.getInstance().add(new Teleop());
     }
     
@@ -109,7 +112,7 @@ public class Robot extends TimedRobot {
     @Override
     public void testInit() {
         Scheduler.getInstance().removeAll();
-        moveTestMotor.start();
+        Scheduler.getInstance().add(new UpdateInfo());
     }
     
     //Called periodically during test mode
@@ -123,11 +126,12 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         Scheduler.getInstance().removeAll();
+        Scheduler.getInstance().add(new UpdateInfo());
     }
     
     //Called periodically when the robot is in disabled mode
     @Override
     public void disabledPeriodic() {
-        
+        Scheduler.getInstance.run();
     }
 }

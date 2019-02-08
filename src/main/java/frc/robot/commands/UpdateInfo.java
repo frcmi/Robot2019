@@ -1,17 +1,12 @@
 package frc.robot.commands;
 
-import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
+import frc.robot.lib.util.PIDInfo;
 
 //Command to move the test motor
-public class MoveTestMotor extends CommandBase {
-    
-    
-    
-    public MoveTestMotor() {
-        //Requires defines any subsystem dependencies, so more than one command can't
-        //use a subsystem at the same time
-        requires(testMotor);
+public class UpdateInfo extends Command {
+    public UpdateInfo() {
+        //No dependencies, this doesn't use any motors
     }	
 
     // Called when the command starts running
@@ -23,13 +18,13 @@ public class MoveTestMotor extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        
+        PIDInfo.getInstance().update();
     }
 
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-        testMotor.moveForward();
+
     }
 
 
@@ -42,7 +37,7 @@ public class MoveTestMotor extends CommandBase {
     // Called once after isFinished returns true
     @Override
     protected void end() {
-        testMotor.stop();
+
     }
 
     // Called when another command which requires one or more of the same
@@ -55,7 +50,6 @@ public class MoveTestMotor extends CommandBase {
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {
-        super.cancel();
-    }
 
+    }
 }

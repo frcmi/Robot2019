@@ -1,4 +1,4 @@
-package frc.robot.subsystems.util;
+package frc.robot.subsystems.lib;
 
 import edu.wpi.first.wpilibj.SpeedController;
 import java.util.*;

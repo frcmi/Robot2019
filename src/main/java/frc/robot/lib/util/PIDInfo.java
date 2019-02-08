@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.lib.util;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.kauailabs.navx.AHRSProtocol;
@@ -20,11 +20,12 @@ import edu.wpi.first.wpilibj.SPI;
 //Logs encoder, compass, gyroscope, and accelerometer movements. Handled by the DriveTrain
 public class PIDInfo {
    
-    public Encoder left;
-    public Encoder right;
+    private static PIDInfo instance;
+    public static PIDInfo getInstance() {
+        if (instance==null) instance = new PIDInfo();
+        return instance;
+    }
     public ArrayList<Double> encoderVals;
-
-    public AHRS ahrs;
     
     public ArrayList<Float> groundAngleVals; // Maybe change to getAngle (from getYaw)
 
@@ -39,11 +40,8 @@ public class PIDInfo {
 
     public PIDInfo() {
         dist = 4.0; // Calculated distance per encoder pulse
-        left.setDistancePerPulse(dist);
-        right.setDistancePerPulse(dist);
-        bitRate = 100;  // Updates per second of AHRS
-
-        ahrs = new AHRS(SPI.Port.kMXP, bitRate);
+        RobotMap.leftEncoder.setDistancePerPulse(dist);
+        RobotMap.leftEncoder.setDistancePerPulse(dist);
 
         groundAngleVals = new ArrayList<Float>();
         compassVals = new ArrayList<Float>();
@@ -53,17 +51,19 @@ public class PIDInfo {
 
     //Updates 
     public void update() {
-        encoderVals.add(left.getDistance());
+        encoderVals.add(RobotMap.leftEncoder.getDistance());
         encoderVals.add(right.getDistance());
 
-        groundAngleVals.add(ahrs.getYaw());
-        compassVals.add(ahrs.getCompassHeading());
-        vertAngleVals.add(ahrs.getPitch());
-        groundAngleDerivs.add(ahrs.getRate());
+        groundAngleVals.add(RobotMap.navx.getYaw());
+        compassVals.add(RobotMap.navx.getCompassHeading());
+        vertAngleVals.add(RobotMap.navx.getPitch());
+        groundAngleDerivs.add(RobotMap.navx.getRate());
     }
 
+    //TODO: make these functions more sophisticated using the encoders as well as the navx for calibration
+
     public double getCurrentEncoderLeft() {
-        return left.getDistance();
+        return RobotMap.leftEncoder.getDistance();
     }
 
     public double getCurrentEncoderRight() {
@@ -75,45 +75,42 @@ public class PIDInfo {
     }
 
     public float getGroundAngle() {
-        return ahrs.getYaw();
+        return RobotMap.navx.getYaw();
     }
 
     public float getCompass() {
-        return ahrs.getCompassHeading();
+        return RobotMap.navx.getCompassHeading();
     }
 
     public float getVertAngle() {
-        return ahrs.getPitch();
+        return RobotMap.navx.getPitch();
     }
 
     public double getGroundAngleDeriv() {
-        return ahrs.getRate();
+        return RobotMap.navx.getRate();
     }
 
     public boolean isMoving() {
-        return ahrs.isMoving();
+        return RobotMap.navx.isMoving();
     }
 
     public boolean isRotating() {
-        return ahrs.isRotating();
+        return RobotMap.navx.isRotating();
     }
 
     public float speed() {
-        return ahrs.getVelocityX();
+        return RobotMap.navx.getVelocityX();
     }
 
     public float turnSpeed() {
-        return ahrs.getVelocityZ();
+        return RobotMap.navx.getVelocityZ();
     }
 
     public float acceleration() {
-        return ahrs.getWorldLinearAccelX();
+        return RobotMap.navx.getWorldLinearAccelX();
     }
 
     public float turnAcceleration() {
-        return ahrs.getWorldLinearAccelZ();
+        return RobotMap.navx.getWorldLinearAccelZ();
     }
-
-
-
 }

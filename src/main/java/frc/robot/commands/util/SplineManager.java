@@ -1,6 +1,6 @@
 package frc.robot.commands.util;
 
-import java.util.*;
+import frc.robot.lib.trajectory.*;
 
 
 //A manager for splines made using the web-based spline designer
