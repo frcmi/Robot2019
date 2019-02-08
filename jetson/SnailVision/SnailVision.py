@@ -168,7 +168,7 @@ def drawLines(frame, projectedPoints, lineIndices, color=(255, 255, 0), thicknes
         if not lineIndex is None and not last is None:
             fromRavel = projectedPoints[last].ravel()
             toRavel = projectedPoints[lineIndex].ravel()
-            print("Draw fromRavel=", fromRavel, "toRavel=", toRavel)
+            #print("Draw fromRavel=", fromRavel, "toRavel=", toRavel)
             cv2.line(frame, tuple(fromRavel), tuple(toRavel), color, thickness)
         last = lineIndex
 
@@ -202,6 +202,12 @@ class Target(object):
     def minx(self):
         return self.boundingRect0[0]
 
+    def distFromPoint(self, point):
+        dist = cv2.pointPolygonTest(self.approx,(point[0],point[1]),True)
+        return dist
+
+    
+
 #undistorts a frame given parameters
 def undistort(img):
     h,  w = img.shape[:2]
@@ -214,7 +220,18 @@ def undistort(img):
     dst = dst[y:y+h, x:x+w]
     return dst
 
-while(True):
+cont = True
+
+# Display the resulting frame
+def displayFrame(gp, frame):
+    cv2.imshow('hsv', gp.hsv_threshold_output)
+
+    cv2.imshow('frame', frame)
+
+
+while(cont):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
     # Capture frame-by-frame
     ret, frame = cap.read()
     
@@ -230,186 +247,187 @@ while(True):
 
     contours = gp.filter_contours_output
 
-    #cv2.drawContours(frame, contours, -1, (255,0,0), 3)
-
     if len(contours) < 2:
-        print("Could not find 2 potential target contours")
-    else:
-        (contours, boundingBoxes) = imutils.contours.sort_contours(contours, method='left-to-right')
-        targets = []
-        for ic in range(len(contours)):
-            contour = contours[ic]
-            boundingBox = boundingBoxes[ic]
-            target = Target(contour, boundingBox)
-            if target.valid:
-                targets.append(target)
-            else:
-                if not target.reason is None:
-                    print("Excluded target: %s" % target.reason)
+        print("Could not find 2 contours")
+        displayFrame(gp, frame)
+        continue
 
-        cv2.drawContours(frame, [x.approx for x in targets], -1, (255,0,0), 3)
-
-        if len(targets) == 2:
-            print("Found exactly 2 targets!")
-            # print("t0=%s", targets[0].rect)
-            # print("t1=%s", targets[1].rect)
-            allpts = numpy.concatenate((targets[0].approx, targets[1].approx))
-            # print('allpts=', allpts)
-            hull = cv2.convexHull(allpts, False)
-            #cv2.drawContours(frame, [hull], -1, (255,0,0), 3)
-            if len(hull) != 6:
-                print("Hull does not have 6 vertices :(")
-            else:
-                print("Hull has 6 vertices!")
-                # Hull is in counterclockwise order (X is to right, Y is down). Sort the segments by angle
-
-                # interior angle in radians around vertex
-                def interiorangle(i):
-                    a = hull[(i+1)%6][0]
-                    b = hull[i][0]
-                    c = hull[(i-1)%6][0]
-                    ang = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
-                    return (ang+360) % 360
-
-                vertices = [i for i in range(6)]
-
-                vertices.sort(key=lambda x: interiorangle(x))
-
-                ibig1 = vertices[4]
-                ibig2 = vertices[5]
-                dbig = (ibig1 - ibig2) % 6
-                if dbig == 1:
-                    ibig1, ibig2 = (ibig2, ibig1)
-                    dbig = 5
-                if dbig == 5:
-                    # hull[ibig1] is the bottom right of the right tape strip
-                    print("Determined target orientation")
-
-                    # roll the convex hull matrix so that the bottom-right of the right strip is first
-                    # we want the origin to be one vertex clockwise from ibig1, so ibig1 = 1
-                    def rightRotate(lists, num): 
-                        output_list = [] 
-      
-                        # Will add values from n to the new list 
-                        for item in range(len(lists) - num, len(lists)): 
-                            output_list.append(lists[item])
-      
-                        # Will add the values before 
-                        # n to the end of new list     
-                        for item in range(0, len(lists) - num):  
-                            output_list.append(lists[item]) 
-          
-                        return output_list 
-
-                    rollamount = (1-ibig1)%6
-                    if (rollamount != 0):
-                        hull = rightRotate(hull, rollamount)
-
-                    # Note coordinate system assumptions:
-                    #
-                    # Target-relative coordinate system:
-                    #
-                    #   +X ==> To the right looking at target from front
-                    #   +Y ==> Upwards from the ground
-                    #   +Z ==> Towards the front of the target (This is a right-handed coordinate system)
-                    #   (0,0,0) is the center of the flat target. Z=0 is the target plane. On the Y axis,
-                    #           0 is the midpoint between the lowest corners of tape and the highest corners
-                    #           of tape. On the X axis, 0 is the symetric midpoint between the left and right tapes.
-                    #           The target coordinate system units are in inches.
-                    #
-                    # Camera coordinate system:
-                    #
-                    #   +X ==> To the right from the camera's point of view
-                    #   +Y ==> Down from the camera's point of view
-                    #   +X ==> Toward the scene (Right-handed)
-                    #
-                    # Screen coordinate system:
-                    #
-                    #   +X ==> To the right from viewer's perspective
-                    #   +Y ==> Down from viewer's perspective
-                    #   Units are in pixels
-                    #   (0, 0) is top-left of screen
-                    
-                    outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)
-                    imgp = outerCorners
-
-
-                    # The 2D screen coordinates corresponding to 3D points in objp
-                    imgp = imgp.reshape(4,1,2)
-
-                    print("objp=", objp)
-                    print("imgp=", imgp)
-
-                    #Finds rotation and translation vectors
-
-                    retval, rvec, tvec, inliers = cv2.solvePnPRansac(objp, imgp, mtx, dist)
-                    print("retval", retval)
-                    print("rvec", rvec)
-                    print("tvec", tvec)
-                    print("inliers", inliers)
-
-                    dst, jacobian = cv2.Rodrigues(rvec)
-                    x = tvec[0][0]
-                    y = tvec[2][0]
-                    t = (math.asin(-dst[0][2]))
-
-                    print("X", x, "Y", y, "Angle", t)
-                    print("90-t", (math.pi/2) - t)
-
-                    Rx = y * (math.cos((math.pi/2) - t))
-                    Ry = y * (math.sin((math.pi/2) - t))
-
-                    print("rx", Rx, "ry", Ry)
-
-                    #Draw an xyz axis in 3d space
-                    originpt, _ = cv2.projectPoints(np.float32([0,0,0]).reshape(1,1,3), rvec, tvec, mtx, dist)
-                    axis = np.float32([[3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
-                    print("axis points=", axis)
-                    # project 3D points to image plane
-                    imgpts, jac = cv2.projectPoints(axis, rvec, tvec, mtx, dist)
-                    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[0].ravel()), (255,0,0), 5)
-                    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[1].ravel()), (0,255,0), 5)
-                    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[2].ravel()), (0,0,255), 5)
-                    cv2.circle(frame, tuple(originpt.ravel()), 10, (255,225,225), -1)
-                    cv2.circle(frame, tuple(imgpts[0].ravel()), 10, (225,0,0), -1)
-                    cv2.circle(frame, tuple(imgpts[1].ravel()), 10, (0,255,0), -1)
-                    cv2.circle(frame, tuple(imgpts[2].ravel()), 10, (0,0,255), -1)
-
-                    # Draw a 1" thick slab version of the tape strips in 3D space
-                    targScreenPoints, tspjac = cv2.projectPoints(targ3DPoints, rvec, tvec, mtx, dist)
-                    print("targScreenPoints=", targScreenPoints)
-                    drawLines(frame, targScreenPoints, targDrawList)
-
-
-                    """
-                    img2Normal = cv2.getPerspectiveTransform(outerCorners, tapeOuterCornersNormalized)
-                    print("img2Normal=", img2Normal)
-                    normal2Img = cv2.getPerspectiveTransform(tapeOuterCornersNormalized, outerCorners)
-                    #normal2Img = cv2.invert(img2Normal)
-                    print("normal2Img=", normal2Img)
-                    tapeArrow = cv2.perspectiveTransform(tapeArrowNormalized, normal2Img)
-                    print("tapeArrow=",tapeArrow)
-                    tapeArrowCnt = numpy.array([(int(x[0][0]+0.5), int(x[0][1]+0.5)) for x in tapeArrow], dtype=numpy.int32)
-                    print("tapeArrowCnt=",tapeArrowCnt)
-
-                    cv2.drawContours(frame, [tapeArrowCnt], -1, (0, 255, 0), 3)
-                    """
-                else:
-                    print("Two shortest segments of hull are not in correct position")
-
-            # cv2.drawContours(frame, [hull], -1, (255, 0, 0), 3)
-
+    (contours, boundingBoxes) = imutils.contours.sort_contours(contours, method='left-to-right')
+    targets = []
+    for ic in range(len(contours)):
+        contour = contours[ic]
+        boundingBox = boundingBoxes[ic]
+        target = Target(contour, boundingBox)
+        if target.valid:
+            targets.append(target)
         else:
-            print("Wrong number of matching targets: %d" % len(targets))
+            if not target.reason is None:
+                print("Excluded target: %s" % target.reason)
+
+    if len(targets) < 2:
+        print("Could not find 2 targets")
+        displayFrame(gp, frame)
+        continue
+
+    frameheight, framewidth, framechannels = frame.shape
+    centerPoint = [framewidth/2, frameheight/2]
+
+    #Takes the two contours closest to the center
+    if len(targets) > 2:
+        targets.sort(key = lambda x: -1*x.distFromPoint(centerPoint))
+        target1 = targets[0]
+        targets = targets[1:]
+
+        def minDistBetweenContourVertices(contour1, contour2):
+            maxVal = 0
+            for vertex1 in contour1:
+                for vertex2 in contour2:
+                    dist = math.sqrt((vertex1[0][0]-vertex2[0][0])**2 + (vertex1[0][1]-vertex2[0][1])**2)
+                    if (dist > maxVal):
+                        maxVal = dist
+            return maxVal
+        targets.sort(key = lambda x: minDistBetweenContourVertices(target1.approx, x.approx))
+        targets = [target1, targets[0]]
+
+    cv2.drawContours(frame, [x.approx for x in targets], -1, (255,0,0), 3)
+        
+    #Unindent to here
+    print("Found exactly 2 targets!")
+    # print("t0=%s", targets[0].rect)
+    # print("t1=%s", targets[1].rect)
+    allpts = numpy.concatenate((targets[0].approx, targets[1].approx))
+    # print('allpts=', allpts)
+    hull = cv2.convexHull(allpts, False)
+    #cv2.drawContours(frame, [hull], -1, (255,0,0), 3)
+    if len(hull) != 6:
+        print("Hull does not have 6 vertices")
+        displayFrame(gp, frame)
+        continue
+    
+    print("Hull has 6 vertices!")
+
+    # Orients the vertices by angle
+    def interiorangle(i):
+        a = hull[(i+1)%6][0]
+        b = hull[i][0]
+        c = hull[(i-1)%6][0]
+        ang = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
+        return (ang+360) % 360
+
+    vertices = [i for i in range(6)]
+
+    vertices.sort(key=lambda x: interiorangle(x))
+
+    ibig1 = vertices[4]
+    ibig2 = vertices[5]
+    dbig = (ibig1 - ibig2) % 6
+    if dbig == 1:
+        ibig1, ibig2 = (ibig2, ibig1)
+        dbig = 5
+    # ------------------------------------------
+    print("Determined target orientation")
+
+    # roll the convex hull matrix so that the bottom-right of the right strip is first
+    # we want the origin to be one vertex clockwise from ibig1, so ibig1 = 1
+    def rightRotate(lists, num): 
+        output_list = [] 
+      
+        # Will add values from n to the new list 
+        for item in range(len(lists) - num, len(lists)): 
+            output_list.append(lists[item])
+      
+        # Will add the values before 
+        # n to the end of new list     
+        for item in range(0, len(lists) - num):  
+            output_list.append(lists[item]) 
+          
+        return output_list 
+
+    rollamount = (1-ibig1)%6
+    if (rollamount != 0):
+        hull = rightRotate(hull, rollamount)
+
+    # Note coordinate system assumptions:
+    #
+    # Target-relative coordinate system:
+    #
+    #   +X ==> To the right looking at target from front
+    #   +Y ==> Upwards from the ground
+    #   +Z ==> Towards the front of the target (This is a right-handed coordinate system)
+    #   (0,0,0) is the center of the flat target. Z=0 is the target plane. On the Y axis,
+    #           0 is the midpoint between the lowest corners of tape and the highest corners
+    #           of tape. On the X axis, 0 is the symetric midpoint between the left and right tapes.
+    #           The target coordinate system units are in inches.
+    #
+    # Camera coordinate system:
+    #
+    #   +X ==> To the right from the camera's point of view
+    #   +Y ==> Down from the camera's point of view
+    #   +X ==> Toward the scene (Right-handed)
+    #
+    # Screen coordinate system:
+    #
+    #   +X ==> To the right from viewer's perspective
+    #   +Y ==> Down from viewer's perspective
+    #   Units are in pixels
+    #   (0, 0) is top-left of screen
+
+    outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)
+    imgp = outerCorners
 
 
-    # Display the resulting frame
-    cv2.imshow('hsv', gp.hsv_threshold_output)
+    # The 2D screen coordinates corresponding to 3D points in objp
+    imgp = imgp.reshape(4,1,2)
 
-    cv2.imshow('frame', frame)
+    print("objp=", objp)
+    print("imgp=", imgp)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    #Finds rotation and translation vectors
+
+    retval, rvec, tvec = cv2.solvePnP(objp, imgp, mtx, dist)
+    print("retval", retval)
+    print("rvec", rvec)
+    print("tvec", tvec)
+
+    dst, jacobian = cv2.Rodrigues(rvec)
+    x = tvec[0][0]
+    y = tvec[2][0]
+    t = (math.asin(-dst[0][2]))
+
+    print("X", x, "Y", y, "Angle", t)
+    print("90-t", (math.pi/2) - t)
+
+    Rx = y * (math.cos((math.pi/2) - t))
+    Ry = y * (math.sin((math.pi/2) - t))
+
+    print("rx", Rx, "ry", Ry)
+
+    #Draw an xyz axis in 3d space
+    originpt, _ = cv2.projectPoints(np.float32([0,0,0]).reshape(1,1,3), rvec, tvec, mtx, dist)
+    axis = np.float32([[3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
+    #print("axis points=", axis)
+    # project 3D points to image plane
+    imgpts, jac = cv2.projectPoints(axis, rvec, tvec, mtx, dist)
+    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[0].ravel()), (255,0,0), 5)
+    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[1].ravel()), (0,255,0), 5)
+    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[2].ravel()), (0,0,255), 5)
+    cv2.circle(frame, tuple(originpt.ravel()), 10, (255,225,225), -1)
+    cv2.circle(frame, tuple(imgpts[0].ravel()), 10, (225,0,0), -1)
+    cv2.circle(frame, tuple(imgpts[1].ravel()), 10, (0,255,0), -1)
+    cv2.circle(frame, tuple(imgpts[2].ravel()), 10, (0,0,255), -1)
+
+    # Draw a 1" thick slab version of the tape strips in 3D space
+    targScreenPoints, tspjac = cv2.projectPoints(targ3DPoints, rvec, tvec, mtx, dist)
+    #print("targScreenPoints=", targScreenPoints)
+    try:
+        drawLines(frame, targScreenPoints, targDrawList)
+    except:
+        print("could not drawLines, something is wrong")
+
+    displayFrame(gp, frame)
+
+
+
 
 
 
