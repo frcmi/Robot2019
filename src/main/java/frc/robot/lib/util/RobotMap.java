@@ -27,32 +27,31 @@ public class RobotMap {
 
 
     //Thrustmaster T1600M (x2)
-    public Joystick leftThrust = new Joystick(0);
-    public Joystick rightThrust = new Joystick(1);
+    public static Joystick leftThrust = new Joystick(0);
+    public static Joystick rightThrust = new Joystick(1);
 
     //Joystick button mapping
-    public double leftX() {
+    public static double getLeftX() {
         return leftThrust.getRawAxis(0);
     }
 
-    public double leftY() {
+    public static double getLeftY() {
         return leftThrust.getRawAxis(1);
     }
 
-    public double rightX() {
+    public static double getRightX() {
         return rightThrust.getRawAxis(0);
     }
 
-    public double rightY() {
+    public static double getRightY() {
         return rightThrust.getRawAxis(1);
     }
 
-    public boolean leftTrigger() {
+    public static boolean getLeftTrigger() {
         return leftThrust.getRawButton(0);
     }
 
-    public boolean rightTrigger() {
+    public static boolean getRightTrigger() {
         return rightThrust.getRawButton(0);
     }
-
 }
