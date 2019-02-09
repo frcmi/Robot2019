@@ -78,7 +78,6 @@ public class Robot extends TimedRobot {
         //System.out.println("Autonomous selected: " + autonomousChooser.getSelected().name);
         //autonomousCommand = autonomousChooser.getSelected();
         Scheduler.getInstance().removeAll();
-        Scheduler.getInstance().add(new UpdateInfo());
         Scheduler.getInstance().add(autonomousCommand);
     }
 
@@ -94,7 +93,6 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         Scheduler.getInstance().removeAll();
-        Scheduler.getInstance().add(new UpdateInfo());
         Scheduler.getInstance().add(new Teleop());
     }
     
@@ -109,7 +107,6 @@ public class Robot extends TimedRobot {
     @Override
     public void testInit() {
         Scheduler.getInstance().removeAll();
-        Scheduler.getInstance().add(new UpdateInfo());
     }
     
     //Called periodically during test mode

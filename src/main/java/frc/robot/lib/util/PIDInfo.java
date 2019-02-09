@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.interfaces.Accelerometer;
 
 import java.util.*;
+import java.lang.Float;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GyroBase;
 import edu.wpi.first.wpilibj.PIDSource;
@@ -25,42 +26,69 @@ public class PIDInfo {
         if (instance==null) instance = new PIDInfo();
         return instance;
     }
-    public ArrayList<Double> encoderVals;
+    public LinkedList<java.lang.Float> leftEncoderVals;
+    public LinkedList<java.lang.Float> rightEncoderVals;
     
-    public ArrayList<Float> groundAngleVals; // Maybe change to getAngle (from getYaw)
+    public LinkedList<java.lang.Float> groundAngleVals; // Maybe change to getAngle (from getYaw)
 
-    public ArrayList<Float> compassVals;
+    public LinkedList<java.lang.Float> compassVals;
 
-    public ArrayList<Float> vertAngleVals;
+    public LinkedList<java.lang.Float> vertAngleVals;
 
-    public ArrayList<Double> groundAngleDerivs;
+    public LinkedList<java.lang.Float> groundAngleDerivs;
 
     public double dist;
     public byte bitRate;
+
+    private static final int NUM_STORED_VALUES = 500; //how much history is stored by this class
 
     public PIDInfo() {
         dist = 4.0; // Calculated distance per encoder pulse
         RobotMap.leftEncoder.setDistancePerPulse(dist);
         RobotMap.leftEncoder.setDistancePerPulse(dist);
 
-        groundAngleVals = new ArrayList<Float>();
-        compassVals = new ArrayList<Float>();
-        vertAngleVals = new ArrayList<Float>();
-        groundAngleDerivs = new ArrayList<Double>();
+        //all of these are stored so index zero is the most recent
+        leftEncoderVals = new LinkedList<java.lang.Float>();
+        rightEncoderVals = new LinkedList<java.lang.Float>();
+
+        groundAngleVals = new LinkedList<java.lang.Float>();
+        compassVals = new LinkedList<java.lang.Float>();
+        vertAngleVals = new LinkedList<java.lang.Float>();
+        groundAngleDerivs = new LinkedList<java.lang.Float>();
     }
 
-    //Updates 
+    //Updates the state of everything. Should be called by
     public void update() {
-        encoderVals.add(RobotMap.leftEncoder.getDistance());
-        encoderVals.add(RobotMap.rightEncoder.getDistance());
+        leftEncoderVals.addFirst(Float.valueOf((float) RobotMap.leftEncoder.getDistance()));
+        trimList(leftEncoderVals);
+        rightEncoderVals.addFirst(Float.valueOf((float) RobotMap.rightEncoder.getDistance()));
+        trimList(rightEncoderVals);
 
-        groundAngleVals.add(RobotMap.navx.getYaw());
-        compassVals.add(RobotMap.navx.getCompassHeading());
-        vertAngleVals.add(RobotMap.navx.getPitch());
-        groundAngleDerivs.add(RobotMap.navx.getRate());
+        groundAngleVals.addFirst(Float.valueOf(RobotMap.navx.getYaw()));
+        trimList(groundAngleVals);
+        compassVals.addFirst(Float.valueOf(RobotMap.navx.getCompassHeading()));
+        trimList(compassVals);
+        vertAngleVals.addFirst(Float.valueOf(RobotMap.navx.getPitch()));
+        trimList(vertAngleVals);
+        groundAngleDerivs.addFirst(Float.valueOf((float) RobotMap.navx.getRate()));
+        trimList(groundAngleDerivs);
+    }
+
+    public void trimList(LinkedList<Float> list){
+        if (list.size() > NUM_STORED_VALUES){
+            list = (LinkedList<java.lang.Float>) list.subList(0, NUM_STORED_VALUES-1);
+        }
     }
 
     //TODO: make these functions more sophisticated using the encoders as well as the navx for calibration
+
+    public float getLeftEncoderDelta(){
+        return leftEncoderVals.get(0) - leftEncoderVals.get(1);
+    }
+
+    public float getRightEncoderDelta(){
+        return rightEncoderVals.get(0) - rightEncoderVals.get(1);
+    }
 
     public double getCurrentEncoderLeft() {
         return RobotMap.leftEncoder.getDistance();
@@ -70,24 +98,20 @@ public class PIDInfo {
         return RobotMap.rightEncoder.getDistance();
     }
 
-    public List<Double> getEncoderHistory() {
-        return encoderVals;
-    }
-
     public float getGroundAngle() {
-        return RobotMap.navx.getYaw();
+        return groundAngleVals.get(0);
     }
 
     public float getCompass() {
-        return RobotMap.navx.getCompassHeading();
+        return compassVals.get(0);
     }
 
     public float getVertAngle() {
-        return RobotMap.navx.getPitch();
+        return vertAngleVals.get(0);
     }
 
-    public double getGroundAngleDeriv() {
-        return RobotMap.navx.getRate();
+    public float getGroundAngleDeriv() {
+        return groundAngleDerivs.get(0);
     }
 
     public boolean isMoving() {

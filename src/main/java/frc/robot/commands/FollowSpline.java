@@ -3,48 +3,23 @@ package frc.robot.commands;
 import frc.robot.Robot;
 import frc.robot.lib.trajectory.Spline;
 import frc.robot.lib.util.RobotMap;
+import frc.robot.lib.util.PIDInfo;
 
 import edu.wpi.first.wpilibj.command.Command;
 import java.lang.Math.*;
 
+//Follows a given spline, given the first point represents the initial position of the robot
 public class FollowSpline extends CommandBase {
-
-    //Keeps track of the position of the front center of the robot
-    public class Position{
-        float x = 0; //Measured in meters, from the initial position of the robot
-        float y = 0; //Measured in meters, from the initial position of the robot
-        float theta = 0; //Angle of the robot, measured in radians counterclockwise from the x axis
-        
-        // time interval is the how many seconds between calls to position
-        // distBetweenWheels is the distance between wheels in meters
-        public Position(){
-            this.x = 0;
-            this.y = 0;
-            this.theta = (float) Math.PI / 2;
-        }
-
-        //Updates the x, y, and theta variables given encoder deltas
-        public void updatePosition(float leftencoderdelta, float rightencoderdelta){
-            float deltaTheta = (rightencoderdelta-leftencoderdelta)/((float) (2*Math.PI*RobotMap.distBetweenWheels));
-            float averageTheta = this.theta + deltaTheta / 2;
-            float averageTraversal = (leftencoderdelta + rightencoderdelta)/2;
-            this.x += averageTraversal * Math.cos(averageTheta);
-            this.y += averageTraversal * Math.sin(averageTheta);
-            this.theta += deltaTheta;
-        }
-
-    }
-
-    
     public String name; // The name to be displayed as a choice at the SmartDashboard
     public Spline path;
     public Position position;
+    public static final float distFromSplineWeightVal = 1f;
+    public static final float deltaBearingWeightVal = 1f;
+    public static final float splineConcavityWeightVal = 1f;
+
 
     public FollowSpline(Spline s) {
-        name = "Follow Spline";
-
-        //Requires defines any subsystem dependencies, so more than one command can't
-        //use a subsystem at the same time
+        name = "Follow Spline " + s.name;
         requires(driveTrain);
     }
 
@@ -57,7 +32,7 @@ public class FollowSpline extends CommandBase {
     //Called periodically while the command is running
     @Override
     protected void execute() {
-
+        position.updatePosition(PIDInfo.getInstance().getLeftEncoderDelta(), PIDInfo.getInstance().getRightEncoderDelta());
     }
 
     // Called just before this Command runs for the first time
@@ -90,5 +65,30 @@ public class FollowSpline extends CommandBase {
     @Override
     public void cancel() {
         super.cancel();
+    }
+
+    //Keeps track of the position of the front center of the robot
+    public class Position{
+        float x = 0; //Measured in meters, from the initial position of the robot
+        float y = 0; //Measured in meters, from the initial position of the robot
+        float theta = 0; //Angle of the robot, measured in radians counterclockwise from the x axis
+        
+        // time interval is the how many seconds between calls to position
+        // distBetweenWheels is the distance between wheels in meters
+        public Position(){
+            this.x = 0;
+            this.y = 0;
+            this.theta = (float) Math.PI / 2;
+        }
+
+        //Updates the x, y, and theta variables given encoder deltas
+        public void updatePosition(float leftencoderdelta, float rightencoderdelta){
+            float deltaTheta = (rightencoderdelta-leftencoderdelta)/((float) (2*Math.PI*RobotMap.distBetweenWheels));
+            float averageTheta = this.theta + deltaTheta / 2;
+            float averageTraversal = (leftencoderdelta + rightencoderdelta)/2;
+            this.x += averageTraversal * Math.cos(averageTheta);
+            this.y += averageTraversal * Math.sin(averageTheta);
+            this.theta += deltaTheta;
+        }
     }
 }

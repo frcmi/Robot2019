@@ -27,7 +27,7 @@ public class Autonomous1 extends AutonomousCommand {
     //Called periodically while the command is running
     @Override
     protected void execute() {
-
+        driveTrain.updatePID();
     }
 
     // Called just before this Command runs for the first time
