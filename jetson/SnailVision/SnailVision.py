@@ -11,6 +11,8 @@ import subprocess
 import sys
 import GripPipeline
 import os
+from time import sleep, monotonic
+from threading import Thread, RLock, Condition
 
 scriptDir = os.path.dirname(os.path.realpath(__file__))
 
@@ -234,13 +236,24 @@ class TargetError(RuntimeError):
 
 class FrameStream(object):
     def __init__(self, cap=None, device=1, gp=None, calib=defaultCalib):
+        self.lock = RLock()
+        self.cond = Condition(self.lock)
         self.calib = calib
         self.gp = gp
+        self.nextFrameNum = 0
+        self.firstPreMono = None
+        self.firstPreTs = None
+        self.firstPostMono = None
+        self.firstPostTs = None
+        self.lastPreCvFrameNum = None
+        self.lastPostCvFrameNum = None
+
         if self.gp is None:
             self.gp = GripPipeline.GripPipeline()
 
         if cap is None:
             cap = "v4l2src device=%DEVICE% ! video/x-raw,framerate=30/1,width=1920,height=1080"
+
 
 
         if isinstance(cap, str):
@@ -261,6 +274,14 @@ class FrameStream(object):
 
         self.cap = cap
 
+        self.closing = False
+        self.acqExcept = None
+        self.latest_ = None
+        self.acqThread = Thread(target=lambda: self.threadEntry())
+        self.acqThread.start()
+
+
+
     @property
     def hasCalib(self):
         return not self.calib is None
@@ -275,12 +296,69 @@ class FrameStream(object):
         kwargs['file'] = sys.stderr
         print("FrameStream: ", *args, **kwargs, )
 
-    def acquire(self):
-        fr = Frame(stream=self)
-        fr.acquire()
-        return fr
+    def acquireNew(self, oldFrame):
+        """
+          Acquires the newest possible frame that is not oldFrame, blocking if necessary to retrieve a
+          new frame.
+
+        :param oldFrame:      A previously processed frame, if NOne, any current frame will be returned, and blocking
+                              only occurs if the first frame has not yet been acquired.
+
+        :return:     A new frame that is not oldFrame. Never None
+        :except:     If the acquisition thread receives an exception, it is re-thrown here
+        """
+        with self.lock:
+            while self.latest_ is oldFrame and self.acqExcept is None:
+                self.cond.wait()
+            if not self.acqExcept is None:
+                raise TargetError("Acquisition failed") from self.acqExcept
+            return self.latest_
+
+    def acquireLatest(self):
+        """
+          Acquires the newest possible frame, blocking only if necessary to retrieve the first frame of the streame.
+          May return the same frame multiple times if called repeatedly.
+        :return:     A new frame that is never None
+        :except:     If the acquisition thread receives an exception, it is re-thrown here
+        """
+        return self.acquireNew(None)
+
+    def threadEntry(self):
+        """
+          We run a separate thread to do acquisition as fast as possible to keep frame buffer empty
+          and make query latency low and timestamps as accurate as possible. Only the latest frame is retained.
+        """
+        try:
+            while not self.closing:
+                fr = Frame(stream=self)
+                fr.acquire()
+                with self.lock:
+                    self.nextFrameNum += 1
+                    self.latest_ = fr
+                    if self.firstPostTs is None:
+                        self.firstPreTs = fr.preTs
+                        self.firstPreMono = fr.preMono
+                        self.firstPostTs = fr.postTs
+                        self.firstPostMono = fr.postMono
+                        self.firstPreCvFrameNum = fr.preFrameNum
+                        self.firstPostCvFrameNum = fr.postFrameNum
+                    self.cond.notify()
+
+                if not self.lastPostCvFrameNum is None:
+                    if fr.postFrameNum > self.lastPostCvFrameNum + 1:
+                        print("dropped %d" % (fr.postFrameNum - self.lastPostCvFrameNum -1))
+                    self.lastPostCvFrameNum = fr.postFrameNum
+                    self.lastPreCvFrameNum = fr.preFrameNum
+
+        except Exception as e:
+            with self.lock:
+                self.acqExcept = e
+                self.cond.notify()
+
 
     def close(self):
+        self.closing = True
+        self.acqThread.join()
         if not self.cap is None:
             self.cap.release()
             self.cap = None
@@ -299,12 +377,12 @@ class FrameStream(object):
 
 
 
-
 class Frame(object):
     def __init__(self, frame=None, stream=None):
         self.frame = frame
         self.stream = stream
         self.targeted = False
+
 
     @property
     def acquired(self):
@@ -341,9 +419,31 @@ class Frame(object):
         if not self.acquired:
             if not stream is None:
                 self.stream = stream
-            ret, self.frame = self.stream.cap.read()
+            # We use grab/retrieve rather than read() to minimize timestamp error since we measure the timestamp
+            # after the grab
+
+            # BEGIN TIME CRITICAL SECTION
+            self.preFrameNum = self.stream.cap.get(cv2.CAP_PROP_POS_FRAMES);
+            self.preMono = monotonic()
+            self.preTs = self.stream.cap.get(cv2.CAP_PROP_POS_MSEC)
+            ret = self.stream.cap.grab()
+            self.postTs = self.stream.cap.get(cv2.CAP_PROP_POS_MSEC)
+            self.postMono = monotonic()
+            self.postFrameNum = self.stream.cap.get(cv2.CAP_PROP_POS_FRAMES);
+            # END TIME_CRITICAL SECTION
+
+
             if not ret:
-                raise TargetError("Unable to capture video frame via VideoCapture.read()")
+                raise TargetError("Unable to capture video frame via VideoCapture.grab()")
+
+            # Make all timestamp units in seconds
+            self.preTs /= 1000.0
+            self.postTs /= 1000.0
+            self.frameNum = self.stream.nextFrameNum
+            ret, self.frame = self.stream.cap.retrieve()
+            if not ret:
+                raise TargetError("Unable to capture video frame via VideoCapture.retrieve()")
+
 
     def log(self, *args, **kwargs):
         self.stream.log("Frame: ", *args, **kwargs, )
@@ -367,6 +467,8 @@ class Frame(object):
 
         if frame is None:
             self.acquire()
+
+        self.log("Processing frame %d ; preMono=" % self.frameNum, self.preMono, ", preTs=", self.preTs, ", postMono=", self.postMono, ", postTs=", self.postTs)
 
         # adjusts for fisheye
         """
@@ -450,7 +552,7 @@ class Frame(object):
             ibig1, ibig2 = (ibig2, ibig1)
             dbig = 5
         # ------------------------------------------
-        print("Determined target orientation")
+        self.log("Determined target orientation")
 
         # roll the convex hull matrix so that the bottom-right of the right strip is first
         # we want the origin to be one vertex clockwise from ibig1, so ibig1 = 1
@@ -551,11 +653,12 @@ class Frame(object):
 
 def main():
     with FrameStream(device=1) as stream:
+        fr = None
         while(cont):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             # Capture frame-by-frame
-            fr = stream.acquire()
+            fr = stream.acquireNew(fr)
             try:
                 fr.process()
             except TargetError as e:

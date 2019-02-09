@@ -182,7 +182,6 @@ class GripPipeline:
             if (ratio < min_ratio or ratio > max_ratio):
                 continue
             output.append(hull)
-        print("found %d filtered contours" % len(output))
         return output
 
 
