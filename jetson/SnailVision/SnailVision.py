@@ -8,11 +8,15 @@ import imutils.contours
 import math
 import json
 import subprocess
-
+import sys
 import GripPipeline
+import os
+
+scriptDir = os.path.dirname(os.path.realpath(__file__))
 
 #Global configuration
-fisheyeparamspath = "calibrate/fisheyecalibration.txt"
+fisheyeparamspath = os.path.join(scriptDir, "calibrate/fisheyecalibration.txt")
+
 camerapath = "/dev/video1"
 
 #Camera configuration
@@ -47,22 +51,47 @@ for i in cmdends:
 
 # Reads fisheye configuration
 noFisheye = False
+defaultCalib = None
+
+class CalibParams(object):
+    def __init__(self, file=None):
+        self.ret = None
+        self.mtx = None
+        self.dist = None
+        self.rvecs = None
+        self.tvecs = None
+        self.file = None
+        self.data_ = None
+
+        if not file is None:
+            self.readFile(file)
+
+    @property
+    def data(self):
+        return self.data_
+
+    @data.setter
+    def data(self, v):
+        self.data_ = v
+        self.ret = v['ret']
+        self.mtx = np.asarray(v['mtx'])
+        self.dist = np.asarray(v['dist'])
+        self.rvecs = np.asarray(v['rvecs'])
+        self.tvecs = np.asarray(v['tvecs'])
+
+
+    def readFile(self, file):
+        if isinstance(file, str):
+            with open(file) as fd:
+                self.readFile(fd)
+        else:
+            self.data = json.load(file)
+
 
 try:
-    with open(fisheyeparamspath) as json_file:
-        data = json.load(json_file)
-        global ret
-        global mtx
-        global dist
-        global rvecs
-        global tvecs
-        ret=data['ret']
-        mtx = np.asarray(data['mtx'])
-        dist = np.asarray(data['dist'])
-        rvecs = np.asarray(data['rvecs'])
-        tvecs = np.asarray(data['tvecs'])
+    defaultCalib = CalibParams(fisheyeparamspath)
 except Exception as e:
-    print("Could not read fisheye params @ " + fisheyeparamspath, e)
+    print("SnailVision: Could not read default fisheye params @ " + fisheyeparamspath, e, file=sys.stderr)
     noFisheye = True
 
 #Calculations for locations of vertices on the board
@@ -106,7 +135,7 @@ tapeLeftContour = [tlTopLeft, tlTopRight, tlBottomRight, tlBottomLeft]
 
 tapeOuterCornersList = [tlTopLeft, trTopRight, trBottomRight, tlBottomLeft]
 # tapeOuterCornersNormalized = numpy.array(tapeOuterCornersList, dtype=numpy.float32)
-# print("tapeOuterCornersNormalized=", tapeOuterCornersNormalized)
+# print("tapeOuterCornersNormalized=", tapeOuterCornersNormalized, file=sys.stderr)
 
 def target2DTuplesTo3DNumpy(pts):
     nm = numpy.array(pts, dtype=numpy.float32)
@@ -147,7 +176,7 @@ for i in range(len(targ3DRaisedPoints)):
 
 targ3DPoints = numpy.concatenate((targ3DFlatPoints, targ3DRaisedPoints), axis=0).reshape(-1, 3)
 
-print("targ3DPoints=", targ3DPoints)
+# print("SnailVision: targ3DPoints=", targ3DPoints, file=sys.stderr)
 
 targDrawList = [
     ITLTOPLEFT, ITLTOPRIGHT, ITLBOTTOMRIGHT, ITLBOTTOMLEFT, ITLTOPLEFT,
@@ -162,27 +191,16 @@ targDrawList = [
     ITRBOTTOMLEFT, XITRBOTTOMLEFT, None,
 ]
 
-def drawLines(frame, projectedPoints, lineIndices, color=(255, 255, 0), thickness=2):
-    last = None
-    for lineIndex in lineIndices:
-        if not lineIndex is None and not last is None:
-            fromRavel = projectedPoints[last].ravel()
-            toRavel = projectedPoints[lineIndex].ravel()
-            #print("Draw fromRavel=", fromRavel, "toRavel=", toRavel)
-            cv2.line(frame, tuple(fromRavel), tuple(toRavel), color, thickness)
-        last = lineIndex
-
-
 #tapeArrowList = [[tcTop], [tcBottomRight], [tcBottomLeft]]
 #tapeArrowNormalized = numpy.array(tapeArrowList, numpy.float32)
+
+axis = np.float32([[3, 0, 0], [0, 3, 0], [0, 0, 3]]).reshape(-1, 3)
+# print("axis points=", axis)
 
 #print("tapeArrowNormalized=", tapeArrowNormalized)
 
 
-print("OpenCV version is ", cv2.__version__)
-
-cap = cv2.VideoCapture("v4l2src device="+camerapath+" ! video/x-raw,framerate=30/1,width=1920,height=1080 ! appsink")
-gp = GripPipeline.GripPipeline()
+# print("OpenCV version is ", cv2.__version__)
 
 class Target(object):
     def __init__(self, contour, boundingBox):
@@ -208,229 +226,344 @@ class Target(object):
 
     
 
-#undistorts a frame given parameters
-def undistort(img):
-    h,  w = img.shape[:2]
-    newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
-    # undistort
-    dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
-
-    # crop the image
-    x,y,w,h = roi
-    dst = dst[y:y+h, x:x+w]
-    return dst
-
 cont = True
 
-# Display the resulting frame
-def displayFrame(gp, frame):
-    cv2.imshow('hsv', gp.hsv_threshold_output)
+class TargetError(RuntimeError):
+    def __init__(self, *args, **kwargs):
+        super(TargetError, self).__init__(self, *args, **kwargs)
 
-    cv2.imshow('frame', frame)
+class FrameStream(object):
+    def __init__(self, cap=None, device=1, gp=None, calib=defaultCalib):
+        self.calib = calib
+        self.gp = gp
+        if self.gp is None:
+            self.gp = GripPipeline.GripPipeline()
+
+        if cap is None:
+            cap = "v4l2src device=%DEVICE% ! video/x-raw,framerate=30/1,width=1920,height=1080"
 
 
-while(cont):
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    
-    #adjusts for fisheye
-    """
-    try:
-        frame = undistort(frame)
-    except:
-        if not noFisheye:
-            print("Could not undistort frame")
-    """
-    gp.process(frame)
+        if isinstance(cap, str):
+            device = str(device)
+            if len(device) <= 0:
+                device = '1'
+            if not device.startswith('/'):
+                if device[0] >= '0' and device[0] <= '9':
+                    device = 'video' + device
+            device = '/dev/' + device
 
-    contours = gp.filter_contours_output
+            cap = cap.replace('%DEVICE%', device)
 
-    if len(contours) < 2:
-        print("Could not find 2 contours")
-        displayFrame(gp, frame)
-        continue
+            if not " ! appsink" in cap:
+                    cap += " ! appsink"
+            self.log("Capturing video from Gstreamer pipeline '%s'" % cap)
+            cap = cv2.VideoCapture(cap)
 
-    (contours, boundingBoxes) = imutils.contours.sort_contours(contours, method='left-to-right')
-    targets = []
-    for ic in range(len(contours)):
-        contour = contours[ic]
-        boundingBox = boundingBoxes[ic]
-        target = Target(contour, boundingBox)
-        if target.valid:
-            targets.append(target)
+        self.cap = cap
+
+    @property
+    def hasCalib(self):
+        return not self.calib is None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        self.close()
+
+    def log(self, *args, **kwargs):
+        kwargs['file'] = sys.stderr
+        print("FrameStream: ", *args, **kwargs, )
+
+    def acquire(self):
+        fr = Frame(stream=self)
+        fr.acquire()
+        return fr
+
+    def close(self):
+        if not self.cap is None:
+            self.cap.release()
+            self.cap = None
+
+    #undistorts a frame given stream parameters
+    def undistort(self, img):
+        h,  w = img.shape[:2]
+        newcameramtx, roi=cv2.getOptimalNewCameraMatrix(self.calib.mtx, self.calib.dist,(w,h),1,(w,h))
+        # undistort
+        dst = cv2.undistort(img, self.calib.mtx, self.calib.dist, None, newcameramtx)
+
+        # crop the image
+        x,y,w,h = roi
+        dst = dst[y:y+h, x:x+w]
+        return dst
+
+
+
+
+class Frame(object):
+    def __init__(self, frame=None, stream=None):
+        self.frame = frame
+        self.stream = stream
+        self.targeted = False
+
+    @property
+    def acquired(self):
+        return not self.frame is None
+
+    @property
+    def gp(self):
+        return self.stream.gp
+
+    @property
+    def cap(self):
+        return self.stream.cap
+
+    @property
+    def calib(self):
+        return self.stream.calib
+
+    @property
+    def hasCalib(self):
+        return self.stream.hasCalib
+
+    def undistort(self):
+        if self.hasCalib:
+            return self.stream.undistort(self.frame)
         else:
-            if not target.reason is None:
-                print("Excluded target: %s" % target.reason)
+            return self.frame
 
-    if len(targets) < 2:
-        print("Could not find 2 targets")
-        displayFrame(gp, frame)
-        continue
+    def display(self):
+        if not self.gp.hsv_threshold_output is None:
+            cv2.imshow('hsv', self.gp.hsv_threshold_output)
+        cv2.imshow('frame', self.frame)
 
-    frameheight, framewidth, framechannels = frame.shape
-    centerPoint = [framewidth/2, frameheight/2]
+    def acquire(self, stream=None):
+        if not self.acquired:
+            if not stream is None:
+                self.stream = stream
+            ret, self.frame = self.stream.cap.read()
+            if not ret:
+                raise TargetError("Unable to capture video frame via VideoCapture.read()")
 
-    #Takes the two contours closest to the center
-    if len(targets) > 2:
-        targets.sort(key = lambda x: -1*x.distFromPoint(centerPoint))
-        target1 = targets[0]
-        targets = targets[1:]
+    def log(self, *args, **kwargs):
+        self.stream.log("Frame: ", *args, **kwargs, )
 
-        def minDistBetweenContourVertices(contour1, contour2):
-            maxVal = 0
-            for vertex1 in contour1:
-                for vertex2 in contour2:
-                    dist = math.sqrt((vertex1[0][0]-vertex2[0][0])**2 + (vertex1[0][1]-vertex2[0][1])**2)
-                    if (dist > maxVal):
-                        maxVal = dist
-            return maxVal
-        targets.sort(key = lambda x: minDistBetweenContourVertices(target1.approx, x.approx))
-        targets = [target1, targets[0]]
+    def drawLines(self, projectedPoints, lineIndices, color=(255, 255, 0), thickness=2):
+        last = None
+        for lineIndex in lineIndices:
+            if not lineIndex is None and not last is None:
+                fromRavel = projectedPoints[last].ravel()
+                toRavel = projectedPoints[lineIndex].ravel()
+                # self.log("Draw fromRavel=", fromRavel, "toRavel=", toRavel)
+                cv2.line(self.frame, tuple(fromRavel), tuple(toRavel), color, thickness)
+            last = lineIndex
 
-    cv2.drawContours(frame, [x.approx for x in targets], -1, (255,0,0), 3)
-        
-    #Unindent to here
-    print("Found exactly 2 targets!")
-    # print("t0=%s", targets[0].rect)
-    # print("t1=%s", targets[1].rect)
-    allpts = numpy.concatenate((targets[0].approx, targets[1].approx))
-    # print('allpts=', allpts)
-    hull = cv2.convexHull(allpts, False)
-    #cv2.drawContours(frame, [hull], -1, (255,0,0), 3)
-    if len(hull) != 6:
-        print("Hull does not have 6 vertices")
-        displayFrame(gp, frame)
-        continue
-    
-    print("Hull has 6 vertices!")
+            axis = np.float32([[3, 0, 0], [0, 3, 0], [0, 0, 3]]).reshape(-1, 3)
+            # self.log("axis points=", axis)
 
-    # Orients the vertices by angle
-    def interiorangle(i):
-        a = hull[(i+1)%6][0]
-        b = hull[i][0]
-        c = hull[(i-1)%6][0]
-        ang = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
-        return (ang+360) % 360
+    def process(self, frame=None):
+        if not frame is None:
+            self.frame = frame
 
-    vertices = [i for i in range(6)]
+        if frame is None:
+            self.acquire()
 
-    vertices.sort(key=lambda x: interiorangle(x))
+        # adjusts for fisheye
+        """
+        self.frame = self.undistort()
+        """
+        self.gp.process(self.frame)
 
-    ibig1 = vertices[4]
-    ibig2 = vertices[5]
-    dbig = (ibig1 - ibig2) % 6
-    if dbig == 1:
-        ibig1, ibig2 = (ibig2, ibig1)
-        dbig = 5
-    # ------------------------------------------
-    print("Determined target orientation")
+        self.contours = self.gp.filter_contours_output
 
-    # roll the convex hull matrix so that the bottom-right of the right strip is first
-    # we want the origin to be one vertex clockwise from ibig1, so ibig1 = 1
-    def rightRotate(lists, num): 
-        output_list = [] 
-      
-        # Will add values from n to the new list 
-        for item in range(len(lists) - num, len(lists)): 
-            output_list.append(lists[item])
-      
-        # Will add the values before 
-        # n to the end of new list     
-        for item in range(0, len(lists) - num):  
-            output_list.append(lists[item]) 
-          
-        return output_list 
+        if len(self.contours) < 2:
+            raise TargetError("Unable to find 2 target contours")
 
-    rollamount = (1-ibig1)%6
-    if (rollamount != 0):
-        hull = rightRotate(hull, rollamount)
+        (self.contours, self.boundingBoxes) = imutils.contours.sort_contours(self.contours, method='left-to-right')
+        self.targets = []
+        for ic in range(len(self.contours)):
+            contour = self.contours[ic]
+            boundingBox = self.boundingBoxes[ic]
+            target = Target(contour, boundingBox)
+            if target.valid:
+                self.targets.append(target)
+            else:
+                if not target.reason is None:
+                    self.log("Excluded target: %s" % target.reason)
 
-    # Note coordinate system assumptions:
-    #
-    # Target-relative coordinate system:
-    #
-    #   +X ==> To the right looking at target from front
-    #   +Y ==> Upwards from the ground
-    #   +Z ==> Towards the front of the target (This is a right-handed coordinate system)
-    #   (0,0,0) is the center of the flat target. Z=0 is the target plane. On the Y axis,
-    #           0 is the midpoint between the lowest corners of tape and the highest corners
-    #           of tape. On the X axis, 0 is the symetric midpoint between the left and right tapes.
-    #           The target coordinate system units are in inches.
-    #
-    # Camera coordinate system:
-    #
-    #   +X ==> To the right from the camera's point of view
-    #   +Y ==> Down from the camera's point of view
-    #   +X ==> Toward the scene (Right-handed)
-    #
-    # Screen coordinate system:
-    #
-    #   +X ==> To the right from viewer's perspective
-    #   +Y ==> Down from viewer's perspective
-    #   Units are in pixels
-    #   (0, 0) is top-left of screen
+        if len(self.targets) < 2:
+            raise TargetError("Could not find 2 targets")
 
-    outerCorners = numpy.array([hull[4][0], hull[5][0], hull[0][0], hull[3][0]], dtype=numpy.float32)
-    imgp = outerCorners
+        frameheight, framewidth, framechannels = self.frame.shape
+        centerPoint = [framewidth / 2, frameheight / 2]
+
+        # Takes the two contours closest to the center
+        self.allTargets = self.targets[:]
+        if len(self.targets) > 2:
+            self.targets.sort(key=lambda x: -1 * x.distFromPoint(centerPoint))
+            self.target1 = self.targets[0]
+            self.targets = self.targets[1:]
+
+            def minDistBetweenContourVertices(contour1, contour2):
+                maxVal = 0
+                for vertex1 in contour1:
+                    for vertex2 in contour2:
+                        dist = math.sqrt((vertex1[0][0] - vertex2[0][0]) ** 2 + (vertex1[0][1] - vertex2[0][1]) ** 2)
+                        if (dist > maxVal):
+                            maxVal = dist
+                return maxVal
+
+            self.targets.sort(key=lambda x: minDistBetweenContourVertices(self.target1.approx, x.approx))
+            self.target2 = self.targets[0]
+            self.targets = [self.target1, self.target2]
+
+        self.log("Found 2 closest targets!")
+        # print("t0=%s", self.targets[0].rect)
+        # print("t1=%s", self.targets[1].rect)
+
+        cv2.drawContours(self.frame, [x.approx for x in self.targets], -1, (255, 0, 0), 3)
+
+        self.allpts = numpy.concatenate((self.targets[0].approx, self.targets[1].approx))
+        # print('allpts=', allpts)
+        self.hull = cv2.convexHull(self.allpts, False)
+        # cv2.drawContours(frame, [hull], -1, (255,0,0), 3)
+        if len(self.hull) != 6:
+            raise TargetError("Hull does not have 6 vertices")
+
+        self.log("Hull has 6 vertices!")
+
+        # Orients the vertices by angle
+        def interiorangle(i):
+            a = self.hull[(i + 1) % 6][0]
+            b = self.hull[i][0]
+            c = self.hull[(i - 1) % 6][0]
+            ang = math.degrees(math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0]))
+            return (ang + 360) % 360
+
+        vertices = [i for i in range(6)]
+        vertices.sort(key=lambda x: interiorangle(x))
+
+        ibig1 = vertices[4]
+        ibig2 = vertices[5]
+        dbig = (ibig1 - ibig2) % 6
+        if dbig == 1:
+            ibig1, ibig2 = (ibig2, ibig1)
+            dbig = 5
+        # ------------------------------------------
+        print("Determined target orientation")
+
+        # roll the convex hull matrix so that the bottom-right of the right strip is first
+        # we want the origin to be one vertex clockwise from ibig1, so ibig1 = 1
+        def rightRotate(lists, num):
+            output_list = []
+
+            # Will add values from n to the new list
+            for item in range(len(lists) - num, len(lists)):
+                output_list.append(lists[item])
+
+            # Will add the values before
+            # n to the end of new list
+            for item in range(0, len(lists) - num):
+                output_list.append(lists[item])
+
+            return output_list
+
+        rollamount = (1 - ibig1) % 6
+        if (rollamount != 0):
+            self.hull = rightRotate(self.hull, rollamount)
+
+        # Note coordinate system assumptions:
+        #
+        # Target-relative coordinate system:
+        #
+        #   +X ==> To the right looking at target from front
+        #   +Y ==> Upwards from the ground
+        #   +Z ==> Towards the front of the target (This is a right-handed coordinate system)
+        #   (0,0,0) is the center of the flat target. Z=0 is the target plane. On the Y axis,
+        #           0 is the midpoint between the lowest corners of tape and the highest corners
+        #           of tape. On the X axis, 0 is the symetric midpoint between the left and right tapes.
+        #           The target coordinate system units are in inches.
+        #
+        # Camera coordinate system:
+        #
+        #   +X ==> To the right from the camera's point of view
+        #   +Y ==> Down from the camera's point of view
+        #   +X ==> Toward the scene (Right-handed)
+        #
+        # Screen coordinate system:
+        #
+        #   +X ==> To the right from viewer's perspective
+        #   +Y ==> Down from viewer's perspective
+        #   Units are in pixels
+        #   (0, 0) is top-left of screen
+
+        self.outerCorners = numpy.array([self.hull[4][0], self.hull[5][0], self.hull[0][0], self.hull[3][0]], dtype=numpy.float32)
+        self.imgp = self.outerCorners
+
+        # The 2D screen coordinates corresponding to 3D points in objp
+        self.imgp = self.imgp.reshape(4, 1, 2)
+
+        self.log("objp=", objp)
+        self.log("imgp=", self.imgp)
+
+        # Finds rotation and translation vectors
+
+        retval, self.rvec, self.tvec = cv2.solvePnP(objp, self.imgp, self.calib.mtx, self.calib.dist)
+        self.log("retval", retval)
+        self.log("rvec", self.rvec)
+        self.log("tvec", self.tvec)
+
+        if not retval:
+            raise TargetError("Unable to determine target pose using solvepnp")
+
+        self.dst, self.jacobian = cv2.Rodrigues(self.rvec)
+        self.x = self.tvec[0][0]
+        self.y = self.tvec[2][0]
+        self.t = (math.asin(-self.dst[0][2]))
+
+        self.log("X", self.x, "Y", self.y, "Angle", self.t)
+        self.log("90-t", (math.pi / 2) - self.t)
+
+        self.Rx = self.y * (math.cos((math.pi / 2) - self.t))
+        self.Ry = self.y * (math.sin((math.pi / 2) - self.t))
+
+        self.log("rx", self.Rx, "ry", self.Ry)
+
+        # Draw an xyz axis in 3d space
+        self.originpt, _ = cv2.projectPoints(np.float32([0, 0, 0]).reshape(1, 1, 3), self.rvec, self.tvec, self.calib.mtx, self.calib.dist)
+        # project 3D points to image plane
+        self.imgpts, self.jac = cv2.projectPoints(axis, self.rvec, self.tvec, self.calib.mtx, self.calib.dist)
+        cv2.line(self.frame, tuple(self.originpt.ravel()), tuple(self.imgpts[0].ravel()), (255, 0, 0), 5)
+        cv2.line(self.frame, tuple(self.originpt.ravel()), tuple(self.imgpts[1].ravel()), (0, 255, 0), 5)
+        cv2.line(self.frame, tuple(self.originpt.ravel()), tuple(self.imgpts[2].ravel()), (0, 0, 255), 5)
+        cv2.circle(self.frame, tuple(self.originpt.ravel()), 10, (255, 225, 225), -1)
+        cv2.circle(self.frame, tuple(self.imgpts[0].ravel()), 10, (225, 0, 0), -1)
+        cv2.circle(self.frame, tuple(self.imgpts[1].ravel()), 10, (0, 255, 0), -1)
+        cv2.circle(self.frame, tuple(self.imgpts[2].ravel()), 10, (0, 0, 255), -1)
+
+        # Draw a 1" thick slab version of the tape strips in 3D space
+        self.targScreenPoints, self.tspjac = cv2.projectPoints(targ3DPoints, self.rvec, self.tvec, self.calib.mtx, self.calib.dist)
+        # print("targScreenPoints=", self.targScreenPoints)
+        self.drawLines(self.targScreenPoints, targDrawList)
+
+        self.targeted = True
 
 
-    # The 2D screen coordinates corresponding to 3D points in objp
-    imgp = imgp.reshape(4,1,2)
+def main():
+    with FrameStream(device=1) as stream:
+        while(cont):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            # Capture frame-by-frame
+            fr = stream.acquire()
+            try:
+                fr.process()
+            except TargetError as e:
+                fr.log("Unable to acquire target: %s" % str(e) )
 
-    print("objp=", objp)
-    print("imgp=", imgp)
+            fr.display()
 
-    #Finds rotation and translation vectors
+    cv2.destroyAllWindows()
 
-    retval, rvec, tvec = cv2.solvePnP(objp, imgp, mtx, dist)
-    print("retval", retval)
-    print("rvec", rvec)
-    print("tvec", tvec)
-
-    dst, jacobian = cv2.Rodrigues(rvec)
-    x = tvec[0][0]
-    y = tvec[2][0]
-    t = (math.asin(-dst[0][2]))
-
-    print("X", x, "Y", y, "Angle", t)
-    print("90-t", (math.pi/2) - t)
-
-    Rx = y * (math.cos((math.pi/2) - t))
-    Ry = y * (math.sin((math.pi/2) - t))
-
-    print("rx", Rx, "ry", Ry)
-
-    #Draw an xyz axis in 3d space
-    originpt, _ = cv2.projectPoints(np.float32([0,0,0]).reshape(1,1,3), rvec, tvec, mtx, dist)
-    axis = np.float32([[3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
-    #print("axis points=", axis)
-    # project 3D points to image plane
-    imgpts, jac = cv2.projectPoints(axis, rvec, tvec, mtx, dist)
-    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[0].ravel()), (255,0,0), 5)
-    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[1].ravel()), (0,255,0), 5)
-    cv2.line(frame, tuple(originpt.ravel()), tuple(imgpts[2].ravel()), (0,0,255), 5)
-    cv2.circle(frame, tuple(originpt.ravel()), 10, (255,225,225), -1)
-    cv2.circle(frame, tuple(imgpts[0].ravel()), 10, (225,0,0), -1)
-    cv2.circle(frame, tuple(imgpts[1].ravel()), 10, (0,255,0), -1)
-    cv2.circle(frame, tuple(imgpts[2].ravel()), 10, (0,0,255), -1)
-
-    # Draw a 1" thick slab version of the tape strips in 3D space
-    targScreenPoints, tspjac = cv2.projectPoints(targ3DPoints, rvec, tvec, mtx, dist)
-    #print("targScreenPoints=", targScreenPoints)
-    try:
-        drawLines(frame, targScreenPoints, targDrawList)
-    except:
-        print("could not drawLines, something is wrong")
-
-    displayFrame(gp, frame)
-
-
-
-
-
-
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()
