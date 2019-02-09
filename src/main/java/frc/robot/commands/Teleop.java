@@ -2,7 +2,7 @@ package frc.robot.commands;
 
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.util.RobotMap;
+import frc.robot.lib.util.RobotMap;
 
 //Command to move the test motor
 public class Teleop extends CommandBase {

@@ -27,6 +27,7 @@ public class Spline {
   // will be met, and all second derivatives at knots = 0.
   public static final Type QuinticHermite = new Type("QuinticHermite");
 
+  public String name = null;
   Type type_;
   double a_;  // ax^5
   double b_;  // + bx^4

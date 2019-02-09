@@ -1,6 +1,6 @@
 package frc.robot.lib.trajectory;
 
-import com.team254.lib.util.ChezyMath;
+import frc.robot.lib.util.SnailMath;
 
 
 //A WaypointSequence is a sequence of Waypoints.  #whatdidyouexpect
@@ -57,7 +57,7 @@ public class WaypointSequence {
     for (int i = 0; i < num_waypoints_; ++i) {
       inverted.waypoints_[i] = waypoints_[i];
       inverted.waypoints_[i].y *= -1;
-      inverted.waypoints_[i].theta = ChezyMath.boundAngle0to2PiRadians(
+      inverted.waypoints_[i].theta = SnailMath.boundAngle0to2PiRadians(
               2*Math.PI - inverted.waypoints_[i].theta);
     }
     

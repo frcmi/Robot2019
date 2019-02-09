@@ -52,7 +52,7 @@ public class PIDInfo {
     //Updates 
     public void update() {
         encoderVals.add(RobotMap.leftEncoder.getDistance());
-        encoderVals.add(right.getDistance());
+        encoderVals.add(RobotMap.rightEncoder.getDistance());
 
         groundAngleVals.add(RobotMap.navx.getYaw());
         compassVals.add(RobotMap.navx.getCompassHeading());
@@ -67,7 +67,7 @@ public class PIDInfo {
     }
 
     public double getCurrentEncoderRight() {
-        return right.getDistance();
+        return RobotMap.rightEncoder.getDistance();
     }
 
     public List<Double> getEncoderHistory() {

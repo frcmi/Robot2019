@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
-import frc.robot.commands.MoveTestMotor;
+import frc.robot.lib.util.RobotMap;
+
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
 
@@ -31,12 +32,8 @@ public class Pneumatics extends Subsystem {
         setDefaultCommand(null);
     }
 
-    public void solenoidOn() {
-        mainSol.set(true);
-    }
-
-    public void solenoidOff() {
-        mainSol.set(false);
+    public void setSol(boolean value) {
+        mainSol.set(value);
     }
 
     public void stop() {

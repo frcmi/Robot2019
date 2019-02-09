@@ -1,15 +1,17 @@
 package frc.robot.subsystems.lib;
 
 import edu.wpi.first.wpilibj.SpeedController;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import java.util.*;
 
-public class Tread implements SpeedController {
-    private List<SpeedController> motors;
+public class Tread<VictoRSPX> implements SpeedController {
+    private List<VictorSPX> motors;
     private boolean isInverted = false;
     private double power;
-    public Tread(SpeedController... motorsArguments){
+    public Tread(VictorSPX... motorsArguments){
         this.isInverted = false;
-        this.motors = new ArrayList<SpeedController>();
+        this.motors = new ArrayList<VictorSPX>();
         for (int i = 0; i < motorsArguments.length; i++){
             this.motors.add(motorsArguments[i]);
         }
@@ -30,8 +32,8 @@ public class Tread implements SpeedController {
     @Override
     public void set(double power){
         this.power = power;
-        for (SpeedController motor : this.motors){
-            motor.set(power);
+        for (VictorSPX motor : this.motors){
+            motor.set(ControlMode.Velocity, power);
         }
     }
     //Sets whether the motors are inverted
@@ -47,8 +49,8 @@ public class Tread implements SpeedController {
     //Disables this tread
     @Override
     public void disable(){
-        for (SpeedController motor : this.motors){
-            motor.disable();
+        for (VictorSPX motor : this.motors){
+            motor.set(ControlMode.Disabled, 0);
         }
     }
     @Override

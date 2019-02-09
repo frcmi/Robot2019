@@ -10,7 +10,6 @@ package frc.robot;
 import frc.robot.commands.Autonomous1;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.subsystems.DriveTrain;
-import frc.robot.commands.GoForward;
 import frc.robot.commands.Teleop;
 import frc.robot.commands.UpdateInfo;
 import frc.robot.commands.ControlPneumatics;
@@ -41,8 +40,6 @@ public class Robot extends TimedRobot {
     private Set<AutonomousCommand> autonomousCommands; // The set of all autonomous routines
     public AutonomousCommand autonomousCommand; // The command to be run in the autonomous
     public RobotInfo info; //Static information about the robot (team and starting position)
-    public MoveTestMotor moveTestMotor;
-    public GoForward goForward;
     
     /**
      * This function is run when the robot is first started up and should be
@@ -82,7 +79,7 @@ public class Robot extends TimedRobot {
         //autonomousCommand = autonomousChooser.getSelected();
         Scheduler.getInstance().removeAll();
         Scheduler.getInstance().add(new UpdateInfo());
-        Scheduler.getInstance.add(autonomousCommand);
+        Scheduler.getInstance().add(autonomousCommand);
     }
 
     // Called periodically during autonomous
@@ -132,6 +129,6 @@ public class Robot extends TimedRobot {
     //Called periodically when the robot is in disabled mode
     @Override
     public void disabledPeriodic() {
-        Scheduler.getInstance.run();
+        Scheduler.getInstance().run();
     }
 }

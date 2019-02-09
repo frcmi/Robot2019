@@ -1,7 +1,7 @@
 package frc.robot.commands;
 
 import frc.robot.Robot;
-import frc.robot.subsystems.RobotMap;
+import frc.robot.lib.util.RobotMap;
 import edu.wpi.first.wpilibj.command.Command;
 
 //Command to move the test motor
@@ -21,7 +21,7 @@ public class ControlPneumatics extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        pneumatics.solSet(RobotMap.getButtonX());
+        pneumatics.setSol(RobotMap.getButtonX());
     }
 
     // Called just before this Command runs for the first time
@@ -53,6 +53,7 @@ public class ControlPneumatics extends CommandBase {
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {
+        pneumatics.stop();
         super.cancel();
     }
 }

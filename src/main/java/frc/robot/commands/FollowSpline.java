@@ -5,6 +5,7 @@ import frc.robot.lib.trajectory.Spline;
 import frc.robot.lib.util.RobotMap;
 
 import edu.wpi.first.wpilibj.command.Command;
+import java.lang.Math.*;
 
 public class FollowSpline extends CommandBase {
 
@@ -19,12 +20,12 @@ public class FollowSpline extends CommandBase {
         public Position(){
             this.x = 0;
             this.y = 0;
-            this.theta = Math.PI / 2;
+            this.theta = (float) Math.PI / 2;
         }
 
         //Updates the x, y, and theta variables given encoder deltas
         public void updatePosition(float leftencoderdelta, float rightencoderdelta){
-            float deltaTheta = (rightencoderdelta-leftencoderdelta)/(2*Math.PI*RobotMap.distBetweenWheels)
+            float deltaTheta = (rightencoderdelta-leftencoderdelta)/((float) (2*Math.PI*RobotMap.distBetweenWheels));
             float averageTheta = this.theta + deltaTheta / 2;
             float averageTraversal = (leftencoderdelta + rightencoderdelta)/2;
             this.x += averageTraversal * Math.cos(averageTheta);
@@ -36,7 +37,7 @@ public class FollowSpline extends CommandBase {
 
     
     public String name; // The name to be displayed as a choice at the SmartDashboard
-    public Spine path;
+    public Spline path;
     public Position position;
 
     public FollowSpline(Spline s) {
