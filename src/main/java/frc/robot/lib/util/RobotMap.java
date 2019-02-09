@@ -1,12 +1,13 @@
 package frc.robot.lib.util;
 
 import edu.wpi.first.wpilibj.*;
+import com.kauailabs.navx.frc.AHRS;
 
 // All output and input objects (motors, cameras, encoders, etc) are defined here
 public class RobotMap {
     //Define outputs
-    public static Victor backRight = new Victor(2);;
-    public static Victor frontRight = new Victor(3)t;
+    public static Victor backRight = new Victor(2);
+    public static Victor frontRight = new Victor(3);
     public static Victor backLeft = new Victor(0);
     public static Victor frontLeft = new Victor(1);
     public static Joystick xbox360 = new Joystick(0);
@@ -21,35 +22,34 @@ public class RobotMap {
     public float distBetweenWheels = 1.0; // in meters TODO: measure this
     public float commandUpdateInterval = 0.02; // in seconds
 
-    public static double getLeftStickX() {
-        return xbox360.getRawAxis(0);
+
+    //Thrustmaster T1600M (x2)
+    public Joystick leftThrust = new Joystick(0);
+    public Joystick rightThrust = new Joystick(1);
+
+    //Joystick button mapping
+    public double leftX() {
+        return leftThrust.getRawAxis(0);
     }
 
-    public static double getLeftStickY() {
-        return xbox360.getRawAxis(1);
+    public double leftY() {
+        return leftThrust.getRawAxis(1);
     }
 
-    public static double getRightStickX() {
-        return xbox360.getRawAxis(4);
+    public double rightX() {
+        return rightThrust.getRawAxis(0);
     }
 
-    public static double getRightStickY() {
-        return xbox360.getRawAxis(5);
+    public double rightY() {
+        return rightThrust.getRawAxis(1);
     }
 
-    public static boolean getButtonX() {
-        return xbox360.getRawButton(2);
+    public boolean leftTrigger() {
+        return leftThrust.getRawButton(0);
     }
 
-    public static boolean getButtonY() {
-        return xbox360.getRawButton(3);
+    public boolean rightTrigger() {
+        return rightThrust.getRawButton(0);
     }
 
-    public static boolean getButtonB() {
-        return xbox360.getRawButton(1);
-    }
-
-    public static boolean getButtonA() {
-        return xbox360.getRawButton(0);
-    }
 }

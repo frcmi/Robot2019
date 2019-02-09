@@ -14,6 +14,8 @@ public class TankDrive extends DriveTrain {
     // of calling the constructor directly, the client should use getInstance to prevent duplication
     // of Subsystem objects.
     private static TankDrive instance;
+    public static double leftScalar = 1.0; //Change this to offset variation in tread (make it so robot always moves straight)
+    public static double rightScalar = 1.0; // Change this to offset variation in tread
     public static TankDrive getInstance() {
         if (instance==null) instance = new TankDrive();
         return instance;
@@ -36,12 +38,12 @@ public class TankDrive extends DriveTrain {
 
     //Moves the right tread with power magnitude
     public void moveRightDrive(double magnitude){
-        rightTread.set(magnitude);
+        rightTread.set(magnitude * rightScalar);
     }
 
     //Moves the left tread with power magnitude
     public void moveLeftDrive(double magnitude){
-        leftTread.set(magnitude);
+        leftTread.set(magnitude * leftScalar);
     }
     
     //Makes the motor stop
