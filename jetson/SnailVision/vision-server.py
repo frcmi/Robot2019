@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, jsonify, request, g
+from flask import Flask, jsonify, request, g, render_template, Response, make_response
 import traceback
 from SnailVision import FrameStream
 from werkzeug.exceptions import HTTPException
@@ -11,7 +11,7 @@ stream = FrameStream(device=1)
 app = Flask(__name__)
 
 class ApiError(RuntimeError):
-    def __init__(self, message, status_code=None, payload=None, class_name=None, default_status_code=500):
+    def __init__(self, message, status_code=None, payload=None, class_name=None, default_status_code=200):
         super(ApiError, self).__init__(message)
         self.default_status_code = default_status_code
         self.message = message
@@ -79,12 +79,12 @@ class ApiError(RuntimeError):
 class ClientError(ApiError):
     def __init__(self, message, status_code=None, payload=None, class_name=None):
         super(ClientError, self).__init__(message, status_code=status_code, payload=payload, class_name=class_name,
-                                          default_status_code=400)
+                                          default_status_code=200)
 
 class ServerError(ApiError):
     def __init__(self, message, status_code=None, payload=None, class_name=None):
         super(ServerError, self).__init__(message, status_code=status_code, payload=payload, class_name=class_name,
-                                          default_status_code=500)
+                                          default_status_code=200)
 
 @app.errorhandler(Exception)
 def handle_invalid_usage(error):
@@ -110,7 +110,6 @@ def before_request():
 
 @app.route('/sv/api/v1.0/target-info', methods=['GET'])
 def get_target_info():
-
     frame = stream.acquireLatest()
     frame.process()
     result = dict(
@@ -141,6 +140,25 @@ def get_time():
         ts_request_mono=g.ts_req_mono_pre,
       )
     return ok_response(result)
+
+@app.route('/cam.jpg', methods=['GET'])
+def get_cam_jpeg():
+    frame = stream.acquireLatest()
+    try:
+        # Do this just to draw on the frame if a target is found
+        frame.process()
+    except:
+        pass
+    jpeg = frame.get_jpeg()
+    response = make_response(jpeg)
+    response.headers.set('Content-Type', 'image/jpeg')
+    # response.headers.set(
+    #    'Content-Disposition', 'attachment', filename='jetson-cam.jpg')
+    return response
+
+@app.route("/")
+def home():
+    return render_template("home.html")
 
 if __name__ == '__main__':
     # NOTE: use_reloader=False is required or gstreamer will not be able to initialize due to camera

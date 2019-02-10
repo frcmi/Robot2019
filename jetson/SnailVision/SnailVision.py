@@ -382,6 +382,7 @@ class Frame(object):
         self.frame = frame
         self.stream = stream
         self.targeted = False
+        self.jpeg_ = None
 
 
     @property
@@ -649,6 +650,14 @@ class Frame(object):
         self.drawLines(self.targScreenPoints, targDrawList)
 
         self.targeted = True
+
+    def get_jpeg(self):
+        if self.jpeg_ is None:
+            ret, jpeg = cv2.imencode('.jpg', self.frame)
+            if not ret:
+                raise TargetError("Unable to convert frame to JPEG")
+            self.jpeg_ = jpeg.tobytes()
+        return self.jpeg_
 
 
 def main():
