@@ -38,6 +38,7 @@ __pycache__/
 .gradle/5.0/taskHistory/taskHistory.lock
 .gradle/buildOutputCleanup/buildOutputCleanup.lock
 .gradle/buildOutputCleanup/outputFiles.bin
+.gradle/5.0/javaCompile/classAnalysis.bin
 
 # Build files #
 build/
