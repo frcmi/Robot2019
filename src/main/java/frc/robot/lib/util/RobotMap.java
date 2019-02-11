@@ -22,9 +22,8 @@ public class RobotMap {
     public static AHRS navx = new AHRS(SPI.Port.kMXP, (byte) 100); //last integer is the bit rate (updates per second) of the navx
 
     //Data about the robot
-    public static float distBetweenWheels = (float) 1.0; // in meters TODO: measure this
-    public static float commandUpdateInterval = (float) 0.02; // in seconds
-
+    public static double distBetweenWheels = 1.0; // in meters TODO: measure this
+    public static double commandUpdateInterval = 0.02; // in seconds
 
     //Thrustmaster T1600M (x2)
     public static Joystick leftThrust = new Joystick(0);

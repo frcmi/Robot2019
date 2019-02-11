@@ -13,7 +13,7 @@ public class VisionSpline {
     double d; // + dx^2
     double e; // + ex
     // f is always 0 for the spline formulation we support.
-    double[] endpoint;
+    public double[] endpoint;
     double arcLength;
 
 
@@ -21,7 +21,7 @@ public class VisionSpline {
         return Math.abs(x - y) < 1E-6;
     }
 
-    //Makes a spline from the x axis to a (x,y) with angle theta
+    //Makes a spline from the origin with angle 0 radians to a (x,y) with angle theta
     public VisionSpline(double x, double y, double theta) {
         System.out.println("Reticulating splines...");
 
@@ -45,13 +45,13 @@ public class VisionSpline {
         d = 0;
         e = 0;
 
-        //Approximates the arc length using trapezoidal sum
+        //Approximates the arc length with trapezoid sum estimate of integral
         //Thanks Schjelly
-        double arcLength = 0;
+        arcLength = 0;
         double lastds = derivativeAt(0.0);
         double currentds;
         double dx = endpoint[0]/numSamplesForIntegration;
-        for (int i = 1; i <= numSamplesForIntegration; ++i) {
+        for (int i = 1; i <= numSamplesForIntegration; i++) {
             double currX = i*dx;
             currentds = Math.sqrt(1 + derivativeAt(currX)*derivativeAt(currX))*dx;
             arcLength += (currentds+lastds)/2;
@@ -74,11 +74,25 @@ public class VisionSpline {
         return angle;
     }
 
+    //This should output the change in terms of radians per meter arc length
+    //I really don't trust my math here so I am going to check it with someone asap
     public double angleChangeAt(double x) {
-        return SnailMath.boundAngleNegPiToPiRadians(Math.atan(secondDerivativeAt(x)));
+        double dthetadx = secondDerivativeAt(x)/(Math.pow(derivativeAt(x),2) + 1);
+        double dxds = 1.0/(1.0+Math.pow(derivativeAt(x),2));
+        double dthetads = dthetadx * dxds;
+        return dthetads;
     }
 
     public String toString() {
         return "a=" + a + "; b=" + b + "; c=" + c + "; d=" + d + "; e=" + e;
+    }
+
+    public double getY(double x) {
+        return a*x*x*x*x*x + b*x*x*x*x + c*x*x*x;
+    }
+
+    //Gets the x value of the nearest point on the spline from a given (x,y)
+    public double getSplinePoint(double x, double y){
+        return 1.0;
     }
 }
