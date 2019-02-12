@@ -28,7 +28,13 @@
       }
     </style>
     <script language="Javascript">
-        var url = "cam.jpg"; //url to load image from
+        const urlParams = new URLSearchParams(window.location.search);
+        var targetType = urlParams.get('target');
+        if (targetType == null || targetType === "") {
+            targetType = "HATCH";
+        }
+        targetType = targetType.toUpperCase()
+        var url = "cam.jpg?target=" + targetType; //url to load image from
         var refreshInterval = 1000; //in ms
         var drawDate = true; //draw date string
         var img;
@@ -80,7 +86,7 @@
                 .fail(function(jqXHR, textStatus, errorThrown) {
                         apiResult = "Failed to fetch vision status; textStatus=" + textStatus;
                     });
-            img.src = url + "?t=" + new Date().getTime();
+            img.src = url + "&t=" + new Date().getTime();
             setTimeout("refresh()",refreshInterval);
         }
     </script>

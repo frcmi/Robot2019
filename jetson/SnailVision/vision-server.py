@@ -1,10 +1,67 @@
 #!/usr/bin/env python3
+import sys
+import os
 from flask import Flask, jsonify, request, g, render_template, Response, make_response
 import traceback
 from SnailVision import FrameStream
 from werkzeug.exceptions import HTTPException
 import numpy as np
 from time import sleep, monotonic
+import logging
+logging.basicConfig(level=logging.DEBUG)
+import json
+from threading import RLock
+
+scriptDir = os.path.dirname(os.path.realpath(__file__))
+
+propertyFile = os.path.join(scriptDir, "properties.json")
+properties = {}
+propertyLock = RLock()
+try:
+    with open(propertyFile) as fd:
+        properties = json.load(fd)
+except Exception as e:
+    print("Unable to load properties file; starting with empty properties: %s" % str(e))
+propertiesString = json.dumps(properties, indent=2, sort_keys=True)
+
+def getProperty(name, default=None):
+    with propertyLock:
+        v = properties.get(name, default)
+    return v
+
+def getAllProperties():
+    with propertyLock:
+        v = dict(properties)
+    return v
+
+def updateProperties(newProperties):
+    global properties
+    global propertiesString
+    with propertyLock:
+        ps = json.dumps(newProperties, indent=2, sort_keys=True)
+        if ps != propertiesString:
+            with open(propertyFile, "w") as fd:
+                fd.write(ps)
+            propertiesString = ps
+            properties = newProperties
+
+def setProperty(name, v):
+    with propertyLock:
+        if isinstance(v, dict) or not v in properties or v != properties[name]:
+            newProperties = dict(properties)
+            newProperties[name] = v
+            updateProperties(newProperties)
+
+def delProperty(name):
+    with propertyLock:
+        if name in properties:
+            newProperties = dict(properties)
+            del newProperties[name]
+            updateProperties(newProperties)
+
+def delAllProperties():
+    newProperties = {}
+    updateProperties(newProperties)
 
 stream = FrameStream(device=1)
 
@@ -98,7 +155,7 @@ def handle_invalid_usage(error):
     response.status_code = error.status_code
     return response
 
-def ok_response(data):
+def ok_response(data=None):
     result = dict(success=True, data=data, ts_request_mono=g.ts_req_mono_pre)
     response = jsonify(result)
     return response
@@ -107,6 +164,15 @@ def ok_response(data):
 def before_request():
     g.ts_req_mono_pre = monotonic()
 
+
+def getTargetTypeArg():
+    targType = request.args.get("target", None)
+    if targType is None or targType == '':
+        targType = "HATCH"
+    targetType = targType.upper()
+    if not targetType  in ["NONE", "HATCH", "PORT" ]:
+        raise ValueError("Invalid target=%s; must be NONE, HATCH, or PORT" % targetType)
+    return targetType
 
 @app.route('/sv/api/v1.0/target-info', methods=['GET'])
 def get_target_info():
@@ -134,6 +200,42 @@ def get_target_info():
       )
     return ok_response(result)
 
+@app.route('/sv/api/v1.0/property', methods=['GET'])
+def get_property():
+    name = request.args.get("name")
+    result = getProperty(name)
+    return ok_response(result)
+
+@app.route('/sv/api/v1.0/properties', methods=['GET'])
+def get_properties():
+    result = getAllProperties()
+    return ok_response(result)
+
+@app.route('/sv/api/v1.0/clear-properties', methods=['GET'])
+def clear_properties():
+    result = delAllProperties()
+    return ok_response(result)
+
+@app.route('/sv/api/v1.0/set-property', methods=['POST'])
+def set_property():
+    name = request.args.get("name")
+    v = request.get_json()
+    setProperty(name, v)
+    return ok_response()
+
+@app.route('/sv/api/v1.0/set-url-property', methods=['GET'])
+def set_url_property():
+    name = request.args.get("name")
+    v = request.args.get("value")
+    setProperty(name, v)
+    return ok_response()
+
+@app.route('/sv/api/v1.0/delete-property', methods=['GET'])
+def delete_property():
+    name = request.args.get("name")
+    delProperty(name)
+    return ok_response()
+
 @app.route('/sv/api/v1.0/time', methods=['GET'])
 def get_time():
     result = dict(
@@ -143,17 +245,21 @@ def get_time():
 
 @app.route('/cam.jpg', methods=['GET'])
 def get_cam_jpeg():
+    targetType = getTargetTypeArg()
+
     frame = stream.acquireLatest()
     try:
         # Do this just to draw on the frame if a target is found
         frame.process()
+        if targetType == "HATCH":
+            frame.drawHatch()
+        elif targetType == "PORT":
+            frame.drawPort()
     except:
         pass
     jpeg = frame.get_jpeg()
     response = make_response(jpeg)
     response.headers.set('Content-Type', 'image/jpeg')
-    # response.headers.set(
-    #    'Content-Disposition', 'attachment', filename='jetson-cam.jpg')
     return response
 
 @app.route("/")
@@ -163,4 +269,4 @@ def home():
 if __name__ == '__main__':
     # NOTE: use_reloader=False is required or gstreamer will not be able to initialize due to camera
     # resource in use error...
-    app.run(host="0.0.0.0", debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=5800, debug=True, use_reloader=False)

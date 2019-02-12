@@ -28,6 +28,11 @@ EOF
 
 fi
 
+# make ssh listen on port 5801 to conform to FRC firewall rules
+if ! grep -q "Port 5801" /etc/ssh/sshd_config; then
+  sudo sed -i '/Port /a Port 5801  # Added for FRC firewall' /etc/ssh/sshd_config
+fi
+
 sudo add-apt-repository universe
 sudo add-apt-repository multiverse
 sudo apt-get update
