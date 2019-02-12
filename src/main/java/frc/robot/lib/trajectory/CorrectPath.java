@@ -1,5 +1,8 @@
 package frc.robot.lib.trajectory;
 
+// sammck: commented out this class to fix build
+
+/*
 import frc.robot.lib.util.SnailMath;
 import org.ejml.UtilEjml;
 import org.ejml.alg.dense.decomposition.eig.EigenPowerMethod;
@@ -8,13 +11,14 @@ import org.ejml.data.Complex64F;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.data.Eigenpair;
 import org.ejml.factory.EigenDecomposition;
+*/
 
 public class CorrectPath {
 
-    public Complex64F[] path;
+    // public Complex64F[] path;
 
     // Let f = y coord. of point, d = x coord. of point
-    path = findRoots(5*a*a, 9*a*b, 8*a*c+4*b*b, 7*b*c, 3*c*c, -f*5*a, -f*4*b, -f*3*c, -1, d);
+    // path = findRoots(5*a*a, 9*a*b, 8*a*c+4*b*b, 7*b*c, 3*c*c, -f*5*a, -f*4*b, -f*3*c, -1, d);
         /**
          * <p>
          * Given a set of polynomial coefficients, compute the roots of the polynomial.  Depending on
@@ -25,6 +29,7 @@ public class CorrectPath {
          * @param coefficients Coefficients of the polynomial.
          * @return The roots of the polynomial
          */
+	/*
         public static Complex64F[] findRoots(double... coefficients) {
             int N = coefficients.length-1;
     
@@ -52,4 +57,6 @@ public class CorrectPath {
     
             return roots;
         }
+	*/
+
 }
