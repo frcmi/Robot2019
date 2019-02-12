@@ -185,7 +185,7 @@ def get_target_info():
         ts_post_mono=frame.postMono,
         ts_post=frame.postTs,
         frame_num_pre=frame.preFrameNum,
-        frame_num_post_post=frame.postFrameNum,
+        frame_num_post=frame.postFrameNum,
         calib=frame.calib.data,
         rvec=frame.rvec.tolist(),
         tvec=frame.tvec.tolist(),
@@ -219,6 +219,8 @@ def clear_properties():
 @app.route('/sv/api/v1.0/set-property', methods=['POST'])
 def set_property():
     name = request.args.get("name")
+    if name is None or name == '':
+        raise ValueError("A property name must be provided")
     v = request.get_json()
     setProperty(name, v)
     return ok_response()
@@ -226,6 +228,8 @@ def set_property():
 @app.route('/sv/api/v1.0/set-url-property', methods=['GET'])
 def set_url_property():
     name = request.args.get("name")
+    if name is None or name == '':
+        raise ValueError("A property name must be provided")
     v = request.args.get("value")
     setProperty(name, v)
     return ok_response()
