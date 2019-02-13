@@ -12,7 +12,6 @@ import org.mercerislandschools.mihs.frc.vision.client.model.*;
 
 public class VisionClient {
     public static final String defaultServerUrl = "http://tegra-ubuntu.local:5800";
-    public static final String apiRoot = "/sv/api/v1.0/";
     public static int numSyncSamples = 20;
     public static double nanosPerSecond = 1000000000.0;
 
@@ -27,7 +26,7 @@ public class VisionClient {
     private long averageSyncLatencyNano = 0;
 
     public VisionClient(String serverUrl) {
-        if (serverUrl == null) {
+        if (serverUrl == null || serverUrl.length() == 0) {
             serverUrl = defaultServerUrl;
         }
         this.serverUrl = serverUrl;
