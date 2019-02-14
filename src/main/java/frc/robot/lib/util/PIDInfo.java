@@ -60,25 +60,26 @@ public class PIDInfo {
     //Updates the state of everything. Should be called by
     public void update() {
         leftEncoderVals.addFirst(Float.valueOf((float) RobotMap.leftEncoder.getDistance()));
-        trimList(leftEncoderVals);
+        // trimList(leftEncoderVals);
         rightEncoderVals.addFirst(Float.valueOf((float) RobotMap.rightEncoder.getDistance()));
-        trimList(rightEncoderVals);
+        // trimList(rightEncoderVals);
 
         groundAngleVals.addFirst(Float.valueOf(RobotMap.navx.getYaw()));
-        trimList(groundAngleVals);
+        // trimList(groundAngleVals);
         compassVals.addFirst(Float.valueOf(RobotMap.navx.getCompassHeading()));
-        trimList(compassVals);
+        // trimList(compassVals);
         vertAngleVals.addFirst(Float.valueOf(RobotMap.navx.getPitch()));
-        trimList(vertAngleVals);
+        // trimList(vertAngleVals);
         groundAngleDerivs.addFirst(Float.valueOf((float) RobotMap.navx.getRate()));
-        trimList(groundAngleDerivs);
+        // trimList(groundAngleDerivs);
     }
-
+/*  NOTE: java doesn't like it when you use sublists of linkedlists, threw exception at runtime
     public void trimList(LinkedList<Float> list){
         if (list.size() > NUM_STORED_VALUES){
             list = (LinkedList<java.lang.Float>) list.subList(0, NUM_STORED_VALUES-1);
         }
     }
+    */
 
     //TODO: make these functions more sophisticated using the encoders as well as the navx for calibration
 

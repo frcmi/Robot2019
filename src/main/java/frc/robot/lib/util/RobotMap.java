@@ -1,5 +1,6 @@
 package frc.robot.lib.util;
 
+import edu.wpi.first.wpilibj.Victor;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
@@ -14,11 +15,11 @@ public class RobotMap {
     public static Victor backLeft = new Victor(0);
     public static Victor frontLeft = new Victor(1);
     public static Joystick xbox360 = new Joystick(0);
-    public static DoubleSolenoid sol = new DoubleSolenoid(0, 1);
+    public static DoubleSolenoid sol = new DoubleSolenoid(3, 7);
 
     //Define inputs:
-    public static Encoder leftEncoder;
-    public static Encoder rightEncoder;
+    public static Encoder leftEncoder = new Encoder(0,1);
+    public static Encoder rightEncoder = new Encoder(2,3);
     public static AHRS navx = new AHRS(SPI.Port.kMXP, (byte) 100); //last integer is the bit rate (updates per second) of the navx
 
     //Data about the robot
@@ -47,10 +48,10 @@ public class RobotMap {
     }
 
     public static boolean getLeftTrigger() {
-        return leftThrust.getRawButton(0);
+        return leftThrust.getRawButton(1);
     }
 
     public static boolean getRightTrigger() {
-        return rightThrust.getRawButton(0);
+        return rightThrust.getRawButton(1);
     }
 }

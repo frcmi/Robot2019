@@ -39,8 +39,6 @@ public class Pneumatics extends Subsystem {
             mainSol.set(Value.kForward);
         } else if (value2) {
             mainSol.set(Value.kReverse);
-        } else {
-            mainSol.set(Value.kOff);
         }
     }
 
