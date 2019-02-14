@@ -3,6 +3,7 @@ package frc.robot.commands;
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.lib.util.RobotMap;
+import frc.robot.subsystems.Pneumatics;
 
 //Command to move the test motor
 public class Teleop extends CommandBase {
@@ -10,6 +11,7 @@ public class Teleop extends CommandBase {
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
         requires(driveTrain);
+        requires(pneumatics);
     }	
 
     // Called when the command starts running
@@ -24,6 +26,7 @@ public class Teleop extends CommandBase {
         driveTrain.updatePID();
         driveTrain.moveLeftDrive(RobotMap.getLeftY());
         driveTrain.moveRightDrive(RobotMap.getRightY());
+        pneumatics.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
     }
 
     // Called just before this Command runs for the first time

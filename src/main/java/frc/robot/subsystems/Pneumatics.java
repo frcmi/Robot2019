@@ -4,6 +4,7 @@ import frc.robot.lib.util.RobotMap;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 
 //A subsystem to control a single motor, to test the code or system
@@ -13,12 +14,13 @@ public class Pneumatics extends Subsystem {
     // of calling the constructor directly, the client should use getInstance to prevent duplication
     // of Subsystem objects.
     private static Pneumatics instance;
+
     public static Pneumatics getInstance() {
         if (instance==null) instance = new Pneumatics();
         return instance;
     }
 
-    private Solenoid mainSol;
+    private DoubleSolenoid mainSol;
     
     private Pneumatics() {
         super();
@@ -32,11 +34,17 @@ public class Pneumatics extends Subsystem {
         setDefaultCommand(null);
     }
 
-    public void setSol(boolean value) {
-        mainSol.set(value);
+    public void setSol(boolean value1, boolean value2) {
+        if (value1) {
+            mainSol.set(Value.kForward);
+        } else if (value2) {
+            mainSol.set(Value.kReverse);
+        } else {
+            mainSol.set(Value.kOff);
+        }
     }
 
     public void stop() {
-        mainSol.set(false);
+        mainSol.set(Value.kOff);
     }
 }
