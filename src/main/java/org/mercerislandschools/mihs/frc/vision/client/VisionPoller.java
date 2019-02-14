@@ -29,6 +29,11 @@ public class VisionPoller extends Thread {
         this(null);
     }
 
+    public VisionClient getClient()
+    {
+        return client;
+    }
+
     public TargetResult getLatestTargetInfo()
     {
         String reason;

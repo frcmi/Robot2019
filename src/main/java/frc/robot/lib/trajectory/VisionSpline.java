@@ -22,6 +22,16 @@ public class VisionSpline {
     }
 
     //Makes a spline from the origin with angle 0 radians to a (x,y) with angle theta
+
+    /**
+     * VisionSpline - Makes a 2D spline in the XY plane, starting at the origin with angle 0 (
+     *    heading along positive X axis) and ending at (x, y) with angle theta (rotated CCW from positive
+     *    X axis).
+     *
+     * @param x       Final x coordinate
+     * @param y       Final y coordinate
+     * @param theta   Final angle in radians, CCW from positive x axis
+     */
     public VisionSpline(double x, double y, double theta) {
         System.out.println("Reticulating splines...");
 

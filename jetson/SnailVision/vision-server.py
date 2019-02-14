@@ -47,7 +47,7 @@ def updateProperties(newProperties):
 
 def setProperty(name, v):
     with propertyLock:
-        if isinstance(v, dict) or not v in properties or v != properties[name]:
+        if isinstance(v, (dict, list)) or not name in properties or v != properties[name]:
             newProperties = dict(properties)
             newProperties[name] = v
             updateProperties(newProperties)

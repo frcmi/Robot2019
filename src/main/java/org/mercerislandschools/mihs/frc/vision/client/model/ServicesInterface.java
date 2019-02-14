@@ -1,5 +1,7 @@
 package org.mercerislandschools.mihs.frc.vision.client.model;
 
+import frc.robot.lib.trajectory.WaypointSequence;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -118,6 +120,38 @@ public interface ServicesInterface {
     SimpleResponse setUrlProperty(
             @QueryParam("name") String name,
             @QueryParam("value") String value
+        );
+
+    @POST
+    @Path("/set-property")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_JSON })
+    SimpleResponse setProperty(
+            @QueryParam("name") String name,
+            Object value
+        );
+
+    @GET
+    @Path("/property")
+    @Produces({ MediaType.APPLICATION_JSON })
+    GetPropertyResponse getProperty(
+            @QueryParam("name") String name
+        );
+
+    @POST
+    @Path("/set-property")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.APPLICATION_JSON })
+    SimpleResponse setWaypointSequenceProperty(
+            @QueryParam("name") String name,
+            WaypointSequence value
+        );
+
+    @GET
+    @Path("/property")
+    @Produces({ MediaType.APPLICATION_JSON })
+    GetWaypointSequencePropertyResponse getWaypointSequenceProperty(
+            @QueryParam("name") String name
         );
 
     @GET

@@ -1,6 +1,11 @@
 package org.mercerislandschools.mihs.frc.vision.client;
 
+import frc.robot.lib.trajectory.WaypointSequence;
+
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.Math.PI;
+//import java.lang.Math.*;
 
 public class App {
     public static void main(String[] args) {
@@ -12,6 +17,32 @@ public class App {
         long nano1sec = 1000000000L;
 
         VisionPoller vp = new VisionPoller(url);
+
+        try {
+            TimeUnit.MILLISECONDS.sleep(2000);
+        } catch(InterruptedException e) {
+        }
+
+        VisionClient vc = vp.getClient();
+
+
+        WaypointSequence ws1 = new WaypointSequence();
+        ws1.addWaypoint(5.0, 6.0, PI/4.0);
+        ws1.addWaypoint(10.0, 8.0, 0.0);
+        ws1.addWaypoint(15.0, 6.0, -PI/4.0);
+        ws1.addWaypoint(20.0, 0.0, 0.0);
+
+        System.out.println("setting testWaypointSequence");
+
+        vc.setWaypointSequenceProperty("testWaypointSequence", ws1);
+
+        System.out.println("getting testWaypointSequence");
+        WaypointSequence ws2 = vc.getWaypointSequenceProperty("testWaypointSequence");
+
+        System.out.println("setting testWaypointSequence2");
+        vc.setWaypointSequenceProperty("testWaypointSequence2", ws2);
+
+
         long startTime = System.nanoTime();
         long endTime = startTime + nano1sec * 10;
 

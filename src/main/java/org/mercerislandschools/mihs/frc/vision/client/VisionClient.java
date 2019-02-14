@@ -1,5 +1,9 @@
 package org.mercerislandschools.mihs.frc.vision.client;
 
+import frc.robot.lib.trajectory.WaypointSequence;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -8,6 +12,7 @@ import javax.ws.rs.core.UriBuilder;
 // import java.util.concurrent.locks.ReentrantLock;
 
 
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import org.mercerislandschools.mihs.frc.vision.client.model.*;
 
 public class VisionClient {
@@ -31,7 +36,13 @@ public class VisionClient {
         }
         this.serverUrl = serverUrl;
 
-        ezClient = new ResteasyClientBuilder().build();
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
+        cm.setMaxTotal(200); // Increase max total connection to 200
+        cm.setDefaultMaxPerRoute(20); // Increase default max connection per route to 20
+        ApacheHttpClient4Engine engine = new ApacheHttpClient4Engine(httpClient);
+
+        ezClient = new ResteasyClientBuilder().httpEngine(engine).build();
         ezTarget = ezClient.target(UriBuilder.fromPath(serverUrl));
         proxy = ezTarget.proxy(ServicesInterface.class);
     }
@@ -113,5 +124,50 @@ public class VisionClient {
             throw new VisionException(resp.error);
         }
         return new TargetInfo(resp.data, serverToLocalTime(resp.data.ts_post_mono));
+    }
+
+    public void setProperty(String name, Object value) {
+        SimpleResponse resp = proxy.setProperty(name, value);
+        if (!resp.success) {
+            throw new VisionException(resp.error);
+        }
+    }
+
+    public Object getProperty(String name) {
+        GetPropertyResponse resp = proxy.getProperty(name);
+        if (!resp.success) {
+            throw new VisionException(resp.error);
+        }
+        return resp.data;
+    }
+
+    public void setStringProperty(String name, String value) {
+        SimpleResponse resp = proxy.setProperty(name, (Object)value);
+        if (!resp.success) {
+            throw new VisionException(resp.error);
+        }
+    }
+
+    public String getStringProperty(String name) {
+        GetPropertyResponse resp = proxy.getProperty(name);
+        if (!resp.success) {
+            throw new VisionException(resp.error);
+        }
+        return (String)resp.data;
+    }
+
+    public void setWaypointSequenceProperty(String name, WaypointSequence value) {
+        SimpleResponse resp = proxy.setWaypointSequenceProperty(name, value);
+        if (!resp.success) {
+            throw new VisionException(resp.error);
+        }
+    }
+
+    public WaypointSequence getWaypointSequenceProperty(String name) {
+        GetWaypointSequencePropertyResponse resp = proxy.getWaypointSequenceProperty(name);
+        if (!resp.success) {
+            throw new VisionException(resp.error);
+        }
+        return resp.data;
     }
 }

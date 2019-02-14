@@ -1,48 +1,74 @@
 package frc.robot.lib.trajectory;
 
 import frc.robot.lib.util.SnailMath;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonValue;
+import org.mercerislandschools.mihs.frc.vision.client.model.ErrorInfo;
 
 //A WaypointSequence is a sequence of Waypoints.  #whatdidyouexpect
 public class WaypointSequence {
-
-    public static class Waypoint {
-
-        public Waypoint(double x, double y, double theta) {
-            this.x = x;
-            this.y = y;
-            this.theta = theta;
-        }
-
-        public Waypoint(Waypoint tocopy) {
-            this.x = tocopy.x;
-            this.y = tocopy.y;
-            this.theta = tocopy.theta;
-        }
-
-        public double x;
-        public double y;
-        public double theta;
-    }
+    public static int defaultInitialAllocSize = 8;
 
     Waypoint[] waypoints_;
-    int num_waypoints_;
+    int num_waypoints_ = 0;
 
-    public WaypointSequence(int max_size) {
+    public WaypointSequence(int max_size)
+    {
         waypoints_ = new Waypoint[max_size];
     }
 
-    public void addWaypoint(Waypoint w) {
-        if (num_waypoints_ < waypoints_.length) {
-            waypoints_[num_waypoints_] = w;
-            ++num_waypoints_;
+    public WaypointSequence()
+    {
+        this(8);
+    }
+
+    public WaypointSequence(Waypoint[] waypoints)
+    {
+        if (waypoints == null) {
+            waypoints_ = new Waypoint[0];
+        } else {
+            waypoints_ = waypoints;
+            num_waypoints_ = waypoints.length;
         }
     }
 
-    public int getNumWaypoints() {
+    @JsonCreator
+    public static WaypointSequence fromList(Waypoint[] waypoints)
+    {
+        return new WaypointSequence(waypoints);
+    }
+
+    public int addWaypoint(Waypoint w)
+    {
+        if (num_waypoints_ >= waypoints_.length) {
+            int newLength = 2 * num_waypoints_;
+            if (newLength < defaultInitialAllocSize) {
+                newLength = defaultInitialAllocSize;
+            }
+            Waypoint[] newWaypoints = new Waypoint[newLength];
+            for (int i = 0; i < num_waypoints_; i++) {
+                newWaypoints[i] = waypoints_[i];
+            }
+            waypoints_ = newWaypoints;
+        }
+        waypoints_[num_waypoints_] = w;
+        int result = num_waypoints_++;
+        return result;
+    }
+
+    public int addWaypoint(double x, double y, double theta)
+    {
+        return addWaypoint(new Waypoint(x, y, theta));
+    }
+
+    public int getNumWaypoints()
+    {
         return num_waypoints_;
     }
 
-    public Waypoint getWaypoint(int index) {
+    public Waypoint getWaypoint(int index)
+    {
         if (index >= 0 && index < getNumWaypoints()) {
             return waypoints_[index];
         } else {
@@ -50,7 +76,8 @@ public class WaypointSequence {
         }
     }
 
-    public WaypointSequence invertY() {
+    public WaypointSequence invertY()
+    {
         WaypointSequence inverted = new WaypointSequence(waypoints_.length);
         inverted.num_waypoints_ = num_waypoints_;
         for (int i = 0; i < num_waypoints_; ++i) {
@@ -61,5 +88,20 @@ public class WaypointSequence {
         }
 
         return inverted;
+    }
+
+    @JsonValue
+    public Waypoint[] toList()
+    {
+        Waypoint[] result;
+        if (waypoints_.length == num_waypoints_) {
+            result = waypoints_;
+        } else {
+            result = new Waypoint[num_waypoints_];
+            for (int i = 0; i < num_waypoints_; ++i) {
+                result[i] = waypoints_[i];
+            }
+        }
+        return result;
     }
 }
