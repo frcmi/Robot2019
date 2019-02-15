@@ -246,7 +246,8 @@ public class SnailMath {
 
     // Equation of distance from point to curve
     private static double antiderivative(double input) {
-        return -1.0;
+        return Math.sqrt(
+            y - (Math.pow((a * Math.pow(input, 5.0) + b * Math.pow(input, 4.0) + c * Math.pow(input, 3.0)), 2.0) + Math.pow((3 - input), 2.0)));
     }
 
     private double search(double low, double mid, double high) {
