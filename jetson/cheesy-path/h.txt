@@ -1,0 +1,1274 @@
+import java.util.*;
+import java.text.*;
+
+public interface CSVWritable {
+    String toCSV();
+}
+
+/**
+ * Temporary spline for testing
+ */
+public class CubicHermiteSpline extends Spline {
+    private final double ax, bx, cx, dx, ay, by, cy, dy;
+
+    public CubicHermiteSpline(Pose2d p0, Pose2d p1) {
+        double x0, x1, dx0, dx1, y0, y1, dy0, dy1;
+        double scale = 2 * p0.getTranslation().distance(p1.getTranslation());
+        x0 = p0.getTranslation().x();
+        x1 = p1.getTranslation().x();
+        dx0 = p0.getRotation().cos() * scale;
+        dx1 = p1.getRotation().cos() * scale;
+        y0 = p0.getTranslation().y();
+        y1 = p1.getTranslation().y();
+        dy0 = p0.getRotation().sin() * scale;
+        dy1 = p1.getRotation().sin() * scale;
+        ax = dx0 + dx1 + 2 * x0 - 2 * x1;
+        bx = -2 * dx0 - dx1 - 3 * x0 + 3 * x1;
+        cx = dx0;
+        dx = x0;
+        ay = dy0 + dy1 + 2 * y0 - 2 * y1;
+        by = -2 * dy0 - dy1 - 3 * y0 + 3 * y1;
+        cy = dy0;
+        dy = y0;
+    }
+
+    @Override
+    public Translation2d getPoint(double t) {
+        final double x = t * t * t * ax + t * t * bx + t * cx + dx;
+        final double y = t * t * t * ay + t * t * by + t * cy + dy;
+        return new Translation2d(x, y);
+    }
+
+    @Override
+    public Rotation2d getHeading(double t) {
+        final double dx = 3 * t * t * ax + 2 * t * bx + cx;
+        final double dy = 3 * t * t * ay + 2 * t * by + cy;
+        return new Rotation2d(dx, dy, true);
+    }
+
+    @Override
+    public double getVelocity(double t) {
+        // TODO implement this
+        return 1.0;
+    }
+
+    @Override
+    public double getCurvature(double t) {
+        final double dx = 3 * t * t * ax + 2 * t * bx + cx;
+        final double dy = 3 * t * t * ay + 2 * t * by + cy;
+        final double ddx = 6 * t * ax + 2 * bx;
+        final double ddy = 6 * t * ay + 2 * by;
+        return (dx*ddy - dy*ddx) / ((dx*dx + dy*dy) * Math.sqrt(dx*dx + dy*dy));
+    }
+
+    @Override
+    public double getDCurvature(double t) {
+        // TODO implement this
+        return 0.0;
+    }
+}
+public interface ICurvature<S> extends State<S> {
+    double getCurvature();
+
+    double getDCurvatureDs();
+}
+/**
+ * Interpolable is an interface used by an Interpolating Tree as the Value type. Given two end points and an
+ * interpolation parameter on [0, 1], it calculates a new Interpolable representing the interpolated value.
+ *
+ * @param <T> The Type of Interpolable
+ * @see InterpolatingTreeMap
+ */
+public interface Interpolable<T> {
+    /**
+     * Interpolates between this value and an other value according to a given parameter. If x is 0, the method should
+     * return this value. If x is 1, the method should return the other value. If 0 < x < 1, the return value should be
+     * interpolated proportionally between the two.
+     *
+     * @param other The value of the upper bound
+     * @param x     The requested value. Should be between 0 and 1.
+     * @return Interpolable<T> The estimated average between the surrounding data
+     */
+    public T interpolate(T other, double x);
+}
+public interface IPose2d<S> extends IRotation2d<S>, ITranslation2d<S> {
+    public Pose2d getPose();
+
+    public S transformBy(Pose2d transform);
+
+    public S mirror();
+}
+public interface IRotation2d<S> extends State<S> {
+    public Rotation2d getRotation();
+}
+public interface ITranslation2d<S> extends State<S> {
+    public Translation2d getTranslation();
+}
+
+/**
+ * Represents a 2d pose (rigid transform) containing translational and rotational elements.
+ * <p>
+ * Inspired by Sophus (https://github.com/strasdat/Sophus/tree/master/sophus)
+ */
+public class Pose2d implements IPose2d<Pose2d> {
+    protected static final Pose2d kIdentity = new Pose2d();
+
+    public static final Pose2d identity() {
+        return kIdentity;
+    }
+
+    private final static double kEps = 1E-9;
+
+    protected final Translation2d translation_;
+    protected final Rotation2d rotation_;
+
+    public Pose2d() {
+        translation_ = new Translation2d();
+        rotation_ = new Rotation2d();
+    }
+
+    public Pose2d(double x, double y, final Rotation2d rotation) {
+        translation_ = new Translation2d(x, y);
+        rotation_ = rotation;
+    }
+
+    public Pose2d(final Translation2d translation, final Rotation2d rotation) {
+        translation_ = translation;
+        rotation_ = rotation;
+    }
+
+    public Pose2d(final Pose2d other) {
+        translation_ = new Translation2d(other.translation_);
+        rotation_ = new Rotation2d(other.rotation_);
+    }
+
+    public static Pose2d fromTranslation(final Translation2d translation) {
+        return new Pose2d(translation, new Rotation2d());
+    }
+
+    public static Pose2d fromRotation(final Rotation2d rotation) {
+        return new Pose2d(new Translation2d(), rotation);
+    }
+
+    /**
+     * Obtain a new Pose2d from a (constant curvature) velocity. See:
+     * https://github.com/strasdat/Sophus/blob/master/sophus/se2.hpp
+     */
+    public static Pose2d exp(final Twist2d delta) {
+        double sin_theta = Math.sin(delta.dtheta);
+        double cos_theta = Math.cos(delta.dtheta);
+        double s, c;
+        if (Math.abs(delta.dtheta) < kEps) {
+            s = 1.0 - 1.0 / 6.0 * delta.dtheta * delta.dtheta;
+            c = .5 * delta.dtheta;
+        } else {
+            s = sin_theta / delta.dtheta;
+            c = (1.0 - cos_theta) / delta.dtheta;
+        }
+        return new Pose2d(new Translation2d(delta.dx * s - delta.dy * c, delta.dx * c + delta.dy * s),
+                new Rotation2d(cos_theta, sin_theta, false));
+    }
+
+    /**
+     * Logical inverse of the above.
+     */
+    public static Twist2d log(final Pose2d transform) {
+        final double dtheta = transform.getRotation().getRadians();
+        final double half_dtheta = 0.5 * dtheta;
+        final double cos_minus_one = transform.getRotation().cos() - 1.0;
+        double halftheta_by_tan_of_halfdtheta;
+        if (Math.abs(cos_minus_one) < kEps) {
+            halftheta_by_tan_of_halfdtheta = 1.0 - 1.0 / 12.0 * dtheta * dtheta;
+        } else {
+            halftheta_by_tan_of_halfdtheta = -(half_dtheta * transform.getRotation().sin()) / cos_minus_one;
+        }
+        final Translation2d translation_part = transform.getTranslation()
+                .rotateBy(new Rotation2d(halftheta_by_tan_of_halfdtheta, -half_dtheta, false));
+        return new Twist2d(translation_part.x(), translation_part.y(), dtheta);
+    }
+
+    @Override
+    public Translation2d getTranslation() {
+        return translation_;
+    }
+
+    @Override
+    public Rotation2d getRotation() {
+        return rotation_;
+    }
+
+    /**
+     * Transforming this RigidTransform2d means first translating by other.translation and then rotating by
+     * other.rotation
+     *
+     * @param other The other transform.
+     * @return This transform * other
+     */
+    @Override
+    public Pose2d transformBy(final Pose2d other) {
+        return new Pose2d(translation_.translateBy(other.translation_.rotateBy(rotation_)),
+                rotation_.rotateBy(other.rotation_));
+    }
+
+    /**
+     * The inverse of this transform "undoes" the effect of translating by this transform.
+     *
+     * @return The opposite of this transform.
+     */
+    public Pose2d inverse() {
+        Rotation2d rotation_inverted = rotation_.inverse();
+        return new Pose2d(translation_.inverse().rotateBy(rotation_inverted), rotation_inverted);
+    }
+
+    public Pose2d normal() {
+        return new Pose2d(translation_, rotation_.normal());
+    }
+
+    /**
+     * Finds the point where the heading of this pose intersects the heading of another. Returns (+INF, +INF) if
+     * parallel.
+     */
+    public Translation2d intersection(final Pose2d other) {
+        final Rotation2d other_rotation = other.getRotation();
+        if (rotation_.isParallel(other_rotation)) {
+            // Lines are parallel.
+            return new Translation2d(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        }
+        if (Math.abs(rotation_.cos()) < Math.abs(other_rotation.cos())) {
+            return intersectionInternal(this, other);
+        } else {
+            return intersectionInternal(other, this);
+        }
+    }
+
+    /**
+     * Return true if this pose is (nearly) colinear with the another.
+     */
+    public boolean isColinear(final Pose2d other) {
+        if (!getRotation().isParallel(other.getRotation()))
+            return false;
+        final Twist2d twist = log(inverse().transformBy(other));
+        return (Util.epsilonEquals(twist.dy, 0.0) && Util.epsilonEquals(twist.dtheta, 0.0));
+    }
+
+    public boolean epsilonEquals(final Pose2d other, double epsilon) {
+        return getTranslation().epsilonEquals(other.getTranslation(), epsilon)
+                && getRotation().isParallel(other.getRotation());
+    }
+
+    private static Translation2d intersectionInternal(final Pose2d a, final Pose2d b) {
+        final Rotation2d a_r = a.getRotation();
+        final Rotation2d b_r = b.getRotation();
+        final Translation2d a_t = a.getTranslation();
+        final Translation2d b_t = b.getTranslation();
+
+        final double tan_b = b_r.tan();
+        final double t = ((a_t.x() - b_t.x()) * tan_b + b_t.y() - a_t.y())
+                / (a_r.sin() - a_r.cos() * tan_b);
+        if (Double.isNaN(t)) {
+            return new Translation2d(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        }
+        return a_t.translateBy(a_r.toTranslation().scale(t));
+    }
+
+    /**
+     * Do twist interpolation of this pose assuming constant curvature.
+     */
+    @Override
+    public Pose2d interpolate(final Pose2d other, double x) {
+        if (x <= 0) {
+            return new Pose2d(this);
+        } else if (x >= 1) {
+            return new Pose2d(other);
+        }
+        final Twist2d twist = Pose2d.log(inverse().transformBy(other));
+        return transformBy(Pose2d.exp(twist.scaled(x)));
+    }
+
+    @Override
+    public String toString() {
+        return "T:" + translation_.toString() + ", R:" + rotation_.toString();
+    }
+
+    @Override
+    public String toCSV() {
+        return translation_.toCSV() + "," + rotation_.toCSV();
+    }
+
+    @Override
+    public double distance(final Pose2d other) {
+        return Pose2d.log(inverse().transformBy(other)).norm();
+    }
+
+    public boolean equals(final Pose2d other) {
+        if (other == null || !(other instanceof Pose2d)) return false;
+        return epsilonEquals((Pose2d)other, Util.kEpsilon);
+    }
+
+    @Override
+    public Pose2d getPose() {
+        return this;
+    }
+
+    @Override
+    public Pose2d mirror() {
+        return new Pose2d(new Translation2d(getTranslation().x(), -getTranslation().y()), getRotation().inverse());
+    }
+}
+
+
+public class Pose2dWithCurvature implements IPose2d<Pose2dWithCurvature>, ICurvature<Pose2dWithCurvature> {
+    protected static final Pose2dWithCurvature kIdentity = new Pose2dWithCurvature();
+
+    public static final Pose2dWithCurvature identity() {
+        return kIdentity;
+    }
+
+    protected final Pose2d pose_;
+    protected final double curvature_;
+    protected final double dcurvature_ds_;
+
+    public Pose2dWithCurvature() {
+        pose_ = new Pose2d();
+        curvature_ = 0.0;
+        dcurvature_ds_ = 0.0;
+    }
+
+    public Pose2dWithCurvature(final Pose2d pose, double curvature) {
+        pose_ = pose;
+        curvature_ = curvature;
+        dcurvature_ds_ = 0.0;
+    }
+
+    public Pose2dWithCurvature(final Pose2d pose, double curvature, double dcurvature_ds) {
+        pose_ = pose;
+        curvature_ = curvature;
+        dcurvature_ds_ = dcurvature_ds;
+    }
+
+    public Pose2dWithCurvature(final Translation2d translation, final Rotation2d rotation, double curvature) {
+        pose_ = new Pose2d(translation, rotation);
+        curvature_ = curvature;
+        dcurvature_ds_ = 0.0;
+    }
+
+    public Pose2dWithCurvature(final Translation2d translation, final Rotation2d rotation, double curvature, double dcurvature_ds) {
+        pose_ = new Pose2d(translation, rotation);
+        curvature_ = curvature;
+        dcurvature_ds_ = dcurvature_ds;
+    }
+
+    @Override
+    public final Pose2d getPose() {
+        return pose_;
+    }
+
+    @Override
+    public Pose2dWithCurvature transformBy(Pose2d transform) {
+        return new Pose2dWithCurvature(getPose().transformBy(transform), getCurvature(), getDCurvatureDs());
+    }
+
+    @Override
+    public Pose2dWithCurvature mirror() {
+        return new Pose2dWithCurvature(getPose().mirror().getPose(), -getCurvature(), -getDCurvatureDs());
+    }
+
+    @Override
+    public double getCurvature() {
+        return curvature_;
+    }
+
+    @Override
+    public double getDCurvatureDs() { return dcurvature_ds_; }
+
+    @Override
+    public final Translation2d getTranslation() {
+        return getPose().getTranslation();
+    }
+
+    @Override
+    public final Rotation2d getRotation() {
+        return getPose().getRotation();
+    }
+
+    @Override
+    public Pose2dWithCurvature interpolate(final Pose2dWithCurvature other, double x) {
+        return new Pose2dWithCurvature(getPose().interpolate(other.getPose(), x),
+                Util.interpolate(getCurvature(), other.getCurvature(), x),
+                Util.interpolate(getDCurvatureDs(), other.getDCurvatureDs(), x));
+    }
+
+    @Override
+    public double distance(final Pose2dWithCurvature other) {
+        return getPose().distance(other.getPose());
+    }
+
+    public boolean equals(final Pose2dWithCurvature other) {
+        if (other == null || !(other instanceof Pose2dWithCurvature)) return false;
+        Pose2dWithCurvature p2dwc = (Pose2dWithCurvature)other;
+        return getPose().equals(p2dwc.getPose()) && Util.epsilonEquals(getCurvature(), p2dwc.getCurvature()) && Util.epsilonEquals(getDCurvatureDs(), p2dwc.getDCurvatureDs());
+    }
+
+    @Override
+    public String toString() {
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        return getPose().toString() + ", curvature: " + fmt.format(getCurvature()) + ", dcurvature_ds: " + fmt.format(getDCurvatureDs());
+    }
+
+    @Override
+    public String toCSV() {
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        return getPose().toCSV() + "," + fmt.format(getCurvature()) + "," + fmt.format(getDCurvatureDs());
+    }
+}
+
+
+public class QuinticHermiteSpline extends Spline {
+    private static final double kEpsilon = 1e-5;
+    private static final double kStepSize = 1.0;
+    private static final double kMinDelta = 0.001;
+    private static final int kSamples = 100;
+    private static final int kMaxIterations = 100;
+
+    private double x0, x1, dx0, dx1, ddx0, ddx1, y0, y1, dy0, dy1, ddy0, ddy1;
+    private double ax, bx, cx, dx, ex, fx, ay, by, cy, dy, ey, fy;
+
+    /**
+     * @param p0 The starting pose of the spline
+     * @param p1 The ending pose of the spline
+     * @param ref ReferenceFrame of this spline
+     */
+    public QuinticHermiteSpline(Pose2d p0, Pose2d p1) {
+        double scale = 1.2 * p0.getTranslation().distance(p1.getTranslation());
+        x0 = p0.getTranslation().x();
+        x1 = p1.getTranslation().x();
+        dx0 = p0.getRotation().cos() * scale;
+        dx1 = p1.getRotation().cos() * scale;
+        ddx0 = 0;
+        ddx1 = 0;
+        y0 = p0.getTranslation().y();
+        y1 = p1.getTranslation().y();
+        dy0 = p0.getRotation().sin() * scale;
+        dy1 = p1.getRotation().sin() * scale;
+        ddy0 = 0;
+        ddy1 = 0;
+
+        computeCoefficients();
+    }
+
+    /**
+     * Used by the curvature optimization function
+     */
+    private QuinticHermiteSpline(double x0, double x1, double dx0, double dx1, double ddx0, double ddx1,
+                                 double y0, double y1, double dy0, double dy1, double ddy0, double ddy1) {
+        this.x0 = x0;
+        this.x1 = x1;
+        this.dx0 = dx0;
+        this.dx1 = dx1;
+        this.ddx0 = ddx0;
+        this.ddx1 = ddx1;
+
+        this.y0 = y0;
+        this.y1 = y1;
+        this.dy0 = dy0;
+        this.dy1 = dy1;
+        this.ddy0 = ddy0;
+        this.ddy1 = ddy1;
+
+        computeCoefficients();
+    }
+
+    /**
+     * Re-arranges the spline into an at^5 + bt^4 + ... + f form for simpler computations
+     */
+    private void computeCoefficients() {
+        ax = -6 * x0 - 3 * dx0 - 0.5 * ddx0 + 0.5 * ddx1 - 3 * dx1 + 6 * x1;
+        bx = 15 * x0 + 8 * dx0 + 1.5 * ddx0 - ddx1 + 7 * dx1 - 15 * x1;
+        cx = -10 * x0 - 6 * dx0 - 1.5 * ddx0 + 0.5 * ddx1 - 4 * dx1 + 10 * x1;
+        dx = 0.5 * ddx0;
+        ex = dx0;
+        fx = x0;
+
+        ay = -6 * y0 - 3 * dy0 - 0.5 * ddy0 + 0.5 * ddy1 - 3 * dy1 + 6 * y1;
+        by = 15 * y0 + 8 * dy0 + 1.5 * ddy0 - ddy1 + 7 * dy1 - 15 * y1;
+        cy = -10 * y0 - 6 * dy0 - 1.5 * ddy0 + 0.5 * ddy1 - 4 * dy1 + 10 * y1;
+        dy = 0.5 * ddy0;
+        ey = dy0;
+        fy = y0;
+    }
+
+    public Pose2d getStartPose() {
+        return new Pose2d(
+                new Translation2d(x0, y0),
+                new Rotation2d(dx0, dy0, true)
+        );
+    }
+
+    public Pose2d getEndPose() {
+        return new Pose2d(
+                new Translation2d(x1, y1),
+                new Rotation2d(dx1, dy1, true)
+        );
+    }
+
+    /**
+     * @param t ranges from 0 to 1
+     * @return the point on the spline for that t value
+     */
+    @Override
+    public Translation2d getPoint(double t) {
+        double x = ax * t * t * t * t * t + bx * t * t * t * t + cx * t * t * t + dx * t * t + ex * t + fx;
+        double y = ay * t * t * t * t * t + by * t * t * t * t + cy * t * t * t + dy * t * t + ey * t + fy;
+        return new Translation2d(x, y);
+    }
+
+    private double dx(double t) {
+        return 5 * ax * t * t * t * t + 4 * bx * t * t * t + 3 * cx * t * t + 2 * dx * t + ex;
+    }
+
+    private double dy(double t) {
+        return 5 * ay * t * t * t * t + 4 * by * t * t * t + 3 * cy * t * t + 2 * dy * t + ey;
+    }
+
+    private double ddx(double t) {
+        return 20 * ax * t * t * t + 12 * bx * t * t + 6 * cx * t + 2 * dx;
+    }
+
+    private double ddy(double t) {
+        return 20 * ay * t * t * t + 12 * by * t * t + 6 * cy * t + 2 * dy;
+    }
+
+    private double dddx(double t) {
+        return 60 * ax * t * t + 24 * bx * t + 6 * cx;
+    }
+
+    private double dddy(double t) {
+        return 60 * ay * t * t + 24 * by * t + 6 * cy;
+    }
+
+    @Override
+    public double getVelocity(double t) {
+        return Math.hypot(dx(t), dy(t));
+    }
+
+    @Override
+    public double getCurvature(double t) {
+        return (dx(t) * ddy(t) - ddx(t) * dy(t)) / ((dx(t) * dx(t) + dy(t) * dy(t)) * Math.sqrt((dx(t) * dx(t) + dy
+                (t) * dy(t))));
+    }
+
+    @Override
+    public  double getDCurvature(double t) {
+        double dx2dy2 = (dx(t) * dx(t) + dy(t) * dy(t));
+        double num = (dx(t)*dddy(t) - dddx(t)*dy(t)) * dx2dy2 - 3 * (dx(t) * ddy(t) - ddx(t) * dy(t)) * (dx(t) * ddx(t) + dy(t) * ddy(t));
+        return num / (dx2dy2 * dx2dy2 * Math.sqrt(dx2dy2));
+    }
+
+    private double dCurvature2(double t) {
+        double dx2dy2 = (dx(t) * dx(t) + dy(t) * dy(t));
+        double num = (dx(t)*dddy(t) - dddx(t)*dy(t)) * dx2dy2 - 3 * (dx(t) * ddy(t) - ddx(t) * dy(t)) * (dx(t) * ddx(t) + dy(t) * ddy(t));
+        return num * num / (dx2dy2 * dx2dy2 * dx2dy2 * dx2dy2 * dx2dy2);
+    }
+
+    @Override
+    public Rotation2d getHeading(double t) {
+        return new Rotation2d(dx(t), dy(t), true);
+    }
+
+    /**
+     * @return integral of dCurvature^2 over the length of the spline
+     */
+    private double sumDCurvature2() {
+        double dt = 1.0 / kSamples;
+        double sum = 0;
+        for (double t = 0; t < 1.0; t += dt) {
+            sum += (dt * dCurvature2(t));
+        }
+        return sum;
+    }
+
+    /**
+     * @return integral of dCurvature^2 over the length of multiple splines
+     */
+    public static double sumDCurvature2(List<QuinticHermiteSpline> splines) {
+        double sum = 0;
+        for (QuinticHermiteSpline s : splines) {
+            sum += s.sumDCurvature2();
+        }
+        return sum;
+    }
+
+    /**
+     * Makes optimization code a little more readable
+     */
+    private static class ControlPoint {
+        private double ddx, ddy;
+    }
+
+    /**
+     * Finds the optimal second derivative values for a set of splines to reduce the sum of the change in curvature
+     * squared over the path
+     *
+     * @param splines the list of splines to optimize
+     * @return the final sumDCurvature2
+     */
+    public static double optimizeSpline(List<QuinticHermiteSpline> splines) {
+        int count = 0;
+        double prev = sumDCurvature2(splines);
+        while (count < kMaxIterations) {
+            runOptimizationIteration(splines);
+            double current = sumDCurvature2(splines);
+            if (prev - current < kMinDelta)
+                return current;
+            prev = current;
+            count++;
+        }
+        return prev;
+    }
+
+
+    /**
+     * Runs a single optimization iteration
+     */
+    private static void runOptimizationIteration(List<QuinticHermiteSpline> splines) {
+        //can't optimize anything with less than 2 splines
+        if (splines.size() <= 1) {
+            return;
+        }
+
+        ControlPoint[] controlPoints = new ControlPoint[splines.size() - 1];
+        double magnitude = 0;
+
+        for (int i = 0; i < splines.size() - 1; ++i) {
+            //don't try to optimize colinear points
+            if(splines.get(i).getStartPose().isColinear(splines.get(i + 1).getStartPose()) || splines.get(i).getEndPose().isColinear(splines.get(i + 1).getEndPose())) {
+                continue;
+            }
+            double original = sumDCurvature2(splines);
+            QuinticHermiteSpline temp, temp1;
+
+            temp = splines.get(i);
+            temp1 = splines.get(i + 1);
+            controlPoints[i] = new ControlPoint(); //holds the gradient at a control point
+
+            //calculate partial derivatives of sumDCurvature2
+            splines.set(i, new QuinticHermiteSpline(temp.x0, temp.x1, temp.dx0, temp.dx1, temp.ddx0, temp.ddx1 +
+                    kEpsilon, temp.y0, temp.y1, temp.dy0, temp.dy1, temp.ddy0, temp.ddy1));
+            splines.set(i + 1, new QuinticHermiteSpline(temp1.x0, temp1.x1, temp1.dx0, temp1.dx1, temp1.ddx0 +
+                    kEpsilon, temp1.ddx1, temp1.y0, temp1.y1, temp1.dy0, temp1.dy1, temp1.ddy0, temp1.ddy1));
+            controlPoints[i].ddx = (sumDCurvature2(splines) - original) / kEpsilon;
+            splines.set(i, new QuinticHermiteSpline(temp.x0, temp.x1, temp.dx0, temp.dx1, temp.ddx0, temp.ddx1, temp
+                    .y0, temp.y1, temp.dy0, temp.dy1, temp.ddy0, temp.ddy1 + kEpsilon));
+            splines.set(i + 1, new QuinticHermiteSpline(temp1.x0, temp1.x1, temp1.dx0, temp1.dx1, temp1.ddx0,
+                    temp1.ddx1, temp1.y0, temp1.y1, temp1.dy0, temp1.dy1, temp1.ddy0 + kEpsilon, temp1.ddy1));
+            controlPoints[i].ddy = (sumDCurvature2(splines) - original) / kEpsilon;
+
+            splines.set(i, temp);
+            splines.set(i + 1, temp1);
+            magnitude += controlPoints[i].ddx * controlPoints[i].ddx + controlPoints[i].ddy * controlPoints[i].ddy;
+        }
+
+        magnitude = Math.sqrt(magnitude);
+
+        //minimize along the direction of the gradient
+        //first calculate 3 points along the direction of the gradient
+        Translation2d p1, p2, p3;
+        p2 = new Translation2d(0, sumDCurvature2(splines)); //middle point is at the current location
+
+        for (int i = 0; i < splines.size() - 1; ++i) { //first point is offset from the middle location by -stepSize
+            if(splines.get(i).getStartPose().isColinear(splines.get(i + 1).getStartPose()) || splines.get(i).getEndPose().isColinear(splines.get(i + 1).getEndPose())) {
+                continue;
+            }
+            //normalize to step size
+            controlPoints[i].ddx *= kStepSize / magnitude;
+            controlPoints[i].ddy *= kStepSize / magnitude;
+
+            //move opposite the gradient by step size amount
+            splines.get(i).ddx1 -= controlPoints[i].ddx;
+            splines.get(i).ddy1 -= controlPoints[i].ddy;
+            splines.get(i + 1).ddx0 -= controlPoints[i].ddx;
+            splines.get(i + 1).ddy0 -= controlPoints[i].ddy;
+
+            //recompute the spline's coefficients to account for new second derivatives
+            splines.get(i).computeCoefficients();
+            splines.get(i + 1).computeCoefficients();
+        }
+        p1 = new Translation2d(-kStepSize, sumDCurvature2(splines));
+
+        for (int i = 0; i < splines.size() - 1; ++i) { //last point is offset from the middle location by +stepSize
+            if(splines.get(i).getStartPose().isColinear(splines.get(i + 1).getStartPose()) || splines.get(i).getEndPose().isColinear(splines.get(i + 1).getEndPose())) {
+                continue;
+            }
+            //move along the gradient by 2 times the step size amount (to return to original location and move by 1
+            // step)
+            splines.get(i).ddx1 += 2 * controlPoints[i].ddx;
+            splines.get(i).ddy1 += 2 * controlPoints[i].ddy;
+            splines.get(i + 1).ddx0 += 2 * controlPoints[i].ddx;
+            splines.get(i + 1).ddy0 += 2 * controlPoints[i].ddy;
+
+            //recompute the spline's coefficients to account for new second derivatives
+            splines.get(i).computeCoefficients();
+            splines.get(i + 1).computeCoefficients();
+        }
+
+        p3 = new Translation2d(kStepSize, sumDCurvature2(splines));
+
+        double stepSize = fitParabola(p1, p2, p3); //approximate step size to minimize sumDCurvature2 along the gradient
+
+        for (int i = 0; i < splines.size() - 1; ++i) {
+            if(splines.get(i).getStartPose().isColinear(splines.get(i + 1).getStartPose()) || splines.get(i).getEndPose().isColinear(splines.get(i + 1).getEndPose())) {
+                continue;
+            }
+            //move by the step size calculated by the parabola fit (+1 to offset for the final transformation to find
+            // p3)
+            controlPoints[i].ddx *= 1 + stepSize / kStepSize;
+            controlPoints[i].ddy *= 1 + stepSize / kStepSize;
+
+            splines.get(i).ddx1 += controlPoints[i].ddx;
+            splines.get(i).ddy1 += controlPoints[i].ddy;
+            splines.get(i + 1).ddx0 += controlPoints[i].ddx;
+            splines.get(i + 1).ddy0 += controlPoints[i].ddy;
+
+            //recompute the spline's coefficients to account for new second derivatives
+            splines.get(i).computeCoefficients();
+            splines.get(i + 1).computeCoefficients();
+        }
+    }
+
+    /**
+     * fits a parabola to 3 points
+     *
+     * @return the x coordinate of the vertex of the parabola
+     */
+    private static double fitParabola(Translation2d p1, Translation2d p2, Translation2d p3) {
+        double A = (p3.x() * (p2.y() - p1.y()) + p2.x() * (p1.y() - p3.y()) + p1.x() * (p3.y() - p2.y()));
+        double B = (p3.x() * p3.x() * (p1.y() - p2.y()) + p2.x() * p2.x() * (p3.y() - p1.y()) + p1.x() * p1.x() *
+                (p2.y() - p3.y()));
+        return -B / (2 * A);
+    }
+}
+
+
+
+/**
+ * A rotation in a 2d coordinate frame represented a point on the unit circle (cosine and sine).
+ * <p>
+ * Inspired by Sophus (https://github.com/strasdat/Sophus/tree/master/sophus)
+ */
+public class Rotation2d implements IRotation2d<Rotation2d> {
+    protected static final Rotation2d kIdentity = new Rotation2d();
+
+    public static final Rotation2d identity() {
+        return kIdentity;
+    }
+
+    protected final double cos_angle_;
+    protected final double sin_angle_;
+
+    public Rotation2d() {
+        this(1, 0, false);
+    }
+
+    public Rotation2d(double x, double y, boolean normalize) {
+        if (normalize) {
+            // From trig, we know that sin^2 + cos^2 == 1, but as we do math on this object we might accumulate rounding errors.
+            // Normalizing forces us to re-scale the sin and cos to reset rounding errors.
+            double magnitude = Math.hypot(x, y);
+            if (magnitude > Util.kEpsilon) {
+                sin_angle_ = y / magnitude;
+                cos_angle_ = x / magnitude;
+            } else {
+                sin_angle_ = 0;
+                cos_angle_ = 1;
+            }
+        } else {
+            cos_angle_ = x;
+            sin_angle_ = y;
+        }
+    }
+
+    public Rotation2d(final Rotation2d other) {
+        cos_angle_ = other.cos_angle_;
+        sin_angle_ = other.sin_angle_;
+    }
+
+    public Rotation2d(final Translation2d direction, boolean normalize) {
+        this(direction.x(), direction.y(), normalize);
+    }
+
+    public static Rotation2d fromRadians(double angle_radians) {
+        return new Rotation2d(Math.cos(angle_radians), Math.sin(angle_radians), false);
+    }
+
+    public static Rotation2d fromDegrees(double angle_degrees) {
+        return fromRadians(Math.toRadians(angle_degrees));
+    }
+
+    public double cos() {
+        return cos_angle_;
+    }
+
+    public double sin() {
+        return sin_angle_;
+    }
+
+    public double tan() {
+        if (Math.abs(cos_angle_) < Util.kEpsilon) {
+            if (sin_angle_ >= 0.0) {
+                return Double.POSITIVE_INFINITY;
+            } else {
+                return Double.NEGATIVE_INFINITY;
+            }
+        }
+        return sin_angle_ / cos_angle_;
+    }
+
+    public double getRadians() {
+        return Math.atan2(sin_angle_, cos_angle_);
+    }
+
+    public double getDegrees() {
+        return Math.toDegrees(getRadians());
+    }
+
+    /**
+     * We can rotate this Rotation2d by adding together the effects of it and another rotation.
+     *
+     * @param other The other rotation. See: https://en.wikipedia.org/wiki/Rotation_matrix
+     * @return This rotation rotated by other.
+     */
+    public Rotation2d rotateBy(final Rotation2d other) {
+        return new Rotation2d(cos_angle_ * other.cos_angle_ - sin_angle_ * other.sin_angle_,
+                cos_angle_ * other.sin_angle_ + sin_angle_ * other.cos_angle_, true);
+    }
+
+    public Rotation2d normal() {
+        return new Rotation2d(-sin_angle_, cos_angle_, false);
+    }
+
+    /**
+     * The inverse of a Rotation2d "undoes" the effect of this rotation.
+     *
+     * @return The opposite of this rotation.
+     */
+    public Rotation2d inverse() {
+        return new Rotation2d(cos_angle_, -sin_angle_, false);
+    }
+
+    public boolean isParallel(final Rotation2d other) {
+        return Util.epsilonEquals(Translation2d.cross(toTranslation(), other.toTranslation()), 0.0);
+    }
+
+    public Translation2d toTranslation() {
+        return new Translation2d(cos_angle_, sin_angle_);
+    }
+
+    @Override
+    public Rotation2d interpolate(final Rotation2d other, double x) {
+        if (x <= 0) {
+            return new Rotation2d(this);
+        } else if (x >= 1) {
+            return new Rotation2d(other);
+        }
+        double angle_diff = inverse().rotateBy(other).getRadians();
+        return this.rotateBy(Rotation2d.fromRadians(angle_diff * x));
+    }
+
+    @Override
+    public String toString() {
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        return "(" + fmt.format(getDegrees()) + " deg)";
+    }
+
+    @Override
+    public String toCSV() {
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        return fmt.format(getDegrees());
+    }
+
+    @Override
+    public double distance(final Rotation2d other) {
+        return inverse().rotateBy(other).getRadians();
+    }
+
+    public boolean equals(final Rotation2d other) {
+        if (other == null || !(other instanceof Rotation2d)) return false;
+        return distance((Rotation2d)other) < Util.kEpsilon;
+    }
+
+    @Override
+    public Rotation2d getRotation() {
+        return this;
+    }
+}
+
+
+public class SplineGenerator {
+    private static final double kMaxDX = 2.0; //inches
+    private static final double kMaxDY = 0.05; //inches
+    private static final double kMaxDTheta = 0.1; //radians!
+    private static final int kMinSampleSize = 1;
+
+    /**
+     * Converts a spline into a list of Twist2d's.
+     *
+     * @param s  the spline to parametrize
+     * @param t0 starting percentage of spline to parametrize
+     * @param t1 ending percentage of spline to parametrize
+     * @return list of Pose2dWithCurvature that approximates the original spline
+     */
+    public static List<Pose2dWithCurvature> parameterizeSpline(Spline s, double maxDx, double maxDy, double
+            maxDTheta, double t0, double t1) {
+        List<Pose2dWithCurvature> rv = new ArrayList<>();
+        rv.add(s.getPose2dWithCurvature(0.0));
+        double dt = (t1 - t0);
+        for (double t = 0; t < t1; t += dt / kMinSampleSize) {
+            getSegmentArc(s, rv, t, t + dt / kMinSampleSize, maxDx, maxDy, maxDTheta);
+        }
+        return rv;
+    }
+
+    /**
+     * Convenience function to parametrize a spline from t 0 to 1
+     */
+    public static List<Pose2dWithCurvature> parameterizeSpline(Spline s) {
+        return parameterizeSpline(s, kMaxDX, kMaxDY, kMaxDTheta, 0.0, 1.0);
+    }
+
+    public static List<Pose2dWithCurvature> parameterizeSpline(Spline s, double maxDx, double maxDy, double maxDTheta) {
+        return parameterizeSpline(s, maxDx, maxDy, maxDTheta, 0.0, 1.0);
+    }
+
+    public static List<Pose2dWithCurvature> parameterizeSplines(List<Spline> splines) {
+        return parameterizeSplines(splines, kMaxDX, kMaxDY, kMaxDTheta);
+    }
+
+    public static List<Pose2dWithCurvature> parameterizeSplines(List<? extends Spline> splines, double maxDx, double maxDy,
+                                                                double maxDTheta) {
+        List<Pose2dWithCurvature> rv = new ArrayList<>();
+        if (splines.isEmpty()) return rv;
+        rv.add(splines.get(0).getPose2dWithCurvature(0.0));
+        for (final Spline s : splines) {
+            List<Pose2dWithCurvature> samples = parameterizeSpline(s, maxDx, maxDy, maxDTheta);
+            samples.remove(0);
+            rv.addAll(samples);
+        }
+        return rv;
+    }
+
+    private static void getSegmentArc(Spline s, List<Pose2dWithCurvature> rv, double t0, double t1, double maxDx,
+                                      double maxDy,
+                                      double maxDTheta) {
+        Translation2d p0 = s.getPoint(t0);
+        Translation2d p1 = s.getPoint(t1);
+        Rotation2d r0 = s.getHeading(t0);
+        Rotation2d r1 = s.getHeading(t1);
+        Pose2d transformation = new Pose2d(new Translation2d(p0, p1).rotateBy(r0.inverse()), r1.rotateBy(r0.inverse()));
+        Twist2d twist = Pose2d.log(transformation);
+        if (twist.dy > maxDy || twist.dx > maxDx || twist.dtheta > maxDTheta) {
+            getSegmentArc(s, rv, t0, (t0 + t1) / 2, maxDx, maxDy, maxDTheta);
+            getSegmentArc(s, rv, (t0 + t1) / 2, t1, maxDx, maxDy, maxDTheta);
+        } else {
+            rv.add(s.getPose2dWithCurvature(t1));
+        }
+    }
+
+}
+
+public abstract class Spline {
+    public abstract Translation2d getPoint(double t);
+
+    public abstract Rotation2d getHeading(double t);
+
+    public abstract double getCurvature(double t);
+
+    // dk/ds
+    public abstract double getDCurvature(double t);
+
+    // ds/dt
+    public abstract double getVelocity(double t);
+
+    public Pose2d getPose2d(double t) {
+        return new Pose2d(getPoint(t), getHeading(t));
+    }
+
+    public Pose2dWithCurvature getPose2dWithCurvature(double t) {
+        return new Pose2dWithCurvature(getPose2d(t), getCurvature(t), getDCurvature(t) / getVelocity(t));
+    }
+
+    // TODO add toString
+    // public abstract String toString();
+}
+
+public interface State<S> extends Interpolable<S>, CSVWritable {
+    double distance(final S other);
+
+    boolean equals(final Object other);
+
+    String toString();
+
+    String toCSV();
+}
+
+
+/**
+ * A translation in a 2d coordinate frame. Translations are simply shifts in an (x, y) plane.
+ */
+public class Translation2d implements ITranslation2d<Translation2d> {
+    protected static final Translation2d kIdentity = new Translation2d();
+
+    public static final Translation2d identity() {
+        return kIdentity;
+    }
+
+    protected final double x_;
+    protected final double y_;
+
+    public Translation2d() {
+        x_ = 0;
+        y_ = 0;
+    }
+
+    public Translation2d(double x, double y) {
+        x_ = x;
+        y_ = y;
+    }
+
+    public Translation2d(final Translation2d other) {
+        x_ = other.x_;
+        y_ = other.y_;
+    }
+
+    public Translation2d(final Translation2d start, final Translation2d end) {
+        x_ = end.x_ - start.x_;
+        y_ = end.y_ - start.y_;
+    }
+
+    /**
+     * The "norm" of a transform is the Euclidean distance in x and y.
+     *
+     * @return sqrt(x ^ 2 + y ^ 2)
+     */
+    public double norm() {
+        return Math.hypot(x_, y_);
+    }
+
+    public double norm2() {
+        return x_ * x_ + y_ * y_;
+    }
+
+    public double x() {
+        return x_;
+    }
+
+    public double y() {
+        return y_;
+    }
+
+    /**
+     * We can compose Translation2d's by adding together the x and y shifts.
+     *
+     * @param other The other translation to add.
+     * @return The combined effect of translating by this object and the other.
+     */
+    public Translation2d translateBy(final Translation2d other) {
+        return new Translation2d(x_ + other.x_, y_ + other.y_);
+    }
+
+    /**
+     * We can also rotate Translation2d's. See: https://en.wikipedia.org/wiki/Rotation_matrix
+     *
+     * @param rotation The rotation to apply.
+     * @return This translation rotated by rotation.
+     */
+    public Translation2d rotateBy(final Rotation2d rotation) {
+        return new Translation2d(x_ * rotation.cos() - y_ * rotation.sin(), x_ * rotation.sin() + y_ * rotation.cos());
+    }
+
+    public Rotation2d direction() {
+        return new Rotation2d(x_, y_, true);
+    }
+
+    /**
+     * The inverse simply means a Translation2d that "undoes" this object.
+     *
+     * @return Translation by -x and -y.
+     */
+    public Translation2d inverse() {
+        return new Translation2d(-x_, -y_);
+    }
+
+    @Override
+    public Translation2d interpolate(final Translation2d other, double x) {
+        if (x <= 0) {
+            return new Translation2d(this);
+        } else if (x >= 1) {
+            return new Translation2d(other);
+        }
+        return extrapolate(other, x);
+    }
+
+    public Translation2d extrapolate(final Translation2d other, double x) {
+        return new Translation2d(x * (other.x_ - x_) + x_, x * (other.y_ - y_) + y_);
+    }
+
+    public Translation2d scale(double s) {
+        return new Translation2d(x_ * s, y_ * s);
+    }
+
+    public boolean epsilonEquals(final Translation2d other, double epsilon) {
+        return Util.epsilonEquals(x(), other.x(), epsilon) && Util.epsilonEquals(y(), other.y(), epsilon);
+    }
+
+    @Override
+    public String toString() {
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        return "(" + fmt.format(x_) + "," + fmt.format(y_) + ")";
+    }
+
+    @Override
+    public String toCSV() {
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        return fmt.format(x_) + "," + fmt.format(y_);
+    }
+
+    public static double dot(final Translation2d a, final Translation2d b) {
+        return a.x_ * b.x_ + a.y_ * b.y_;
+    }
+
+    public static Rotation2d getAngle(final Translation2d a, final Translation2d b) {
+        double cos_angle = dot(a, b) / (a.norm() * b.norm());
+        if (Double.isNaN(cos_angle)) {
+            return new Rotation2d();
+        }
+        return Rotation2d.fromRadians(Math.acos(Math.min(1.0, Math.max(cos_angle, -1.0))));
+    }
+
+    public static double cross(final Translation2d a, final Translation2d b) {
+        return a.x_ * b.y_ - a.y_ * b.x_;
+    }
+
+    @Override
+    public double distance(final Translation2d other) {
+        return inverse().translateBy(other).norm();
+    }
+
+    public boolean equals(final Translation2d other) {
+        if (other == null || !(other instanceof Translation2d)) return false;
+        return distance((Translation2d)other) < Util.kEpsilon;
+    }
+
+    @Override
+    public Translation2d getTranslation() {
+        return this;
+    }
+}
+
+
+/**
+ * A movement along an arc at constant curvature and velocity. We can use ideas from "differential calculus" to create
+ * new RigidTransform2d's from a Twist2d and visa versa.
+ * <p>
+ * A Twist can be used to represent a difference between two poses, a velocity, an acceleration, etc.
+ */
+public class Twist2d {
+    protected static final Twist2d kIdentity = new Twist2d(0.0, 0.0, 0.0);
+
+    public static final Twist2d identity() {
+        return kIdentity;
+    }
+
+    public final double dx;
+    public final double dy;
+    public final double dtheta; // Radians!
+
+    public Twist2d(double dx, double dy, double dtheta) {
+        this.dx = dx;
+        this.dy = dy;
+        this.dtheta = dtheta;
+    }
+
+    public Twist2d scaled(double scale) {
+        return new Twist2d(dx * scale, dy * scale, dtheta * scale);
+    }
+
+    public double norm() {
+        // Common case of dy == 0
+        if (dy == 0.0)
+            return Math.abs(dx);
+        return Math.hypot(dx, dy);
+    }
+
+    public double curvature() {
+        if (Math.abs(dtheta) < Util.kEpsilon && norm() < Util.kEpsilon)
+            return 0.0;
+        return dtheta / norm();
+    }
+
+    @Override
+    public String toString() {
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        return "(" + fmt.format(dx) + "," + fmt.format(dy) + "," + fmt.format(Math.toDegrees(dtheta)) + " deg)";
+    }
+}
+
+/**
+ * Contains basic functions that are used often.
+ */
+public class Util {
+
+    public static final double kEpsilon = 1e-12;
+
+    /**
+     * Prevent this class from being instantiated.
+     */
+    private Util() {
+    }
+
+    /**
+     * Limits the given input to the given magnitude.
+     */
+    public static double limit(double v, double maxMagnitude) {
+        return limit(v, -maxMagnitude, maxMagnitude);
+    }
+
+    public static double limit(double v, double min, double max) {
+        return Math.min(max, Math.max(min, v));
+    }
+
+    public static double interpolate(double a, double b, double x) {
+        x = limit(x, 0.0, 1.0);
+        return a + (b - a) * x;
+    }
+
+    public static String joinStrings(final String delim, final List<?> strings) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < strings.size(); ++i) {
+            sb.append(strings.get(i).toString());
+            if (i < strings.size() - 1) {
+                sb.append(delim);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static boolean epsilonEquals(double a, double b, double epsilon) {
+        return (a - epsilon <= b) && (a + epsilon >= b);
+    }
+
+    public static boolean epsilonEquals(double a, double b) {
+        return epsilonEquals(a, b, kEpsilon);
+    }
+
+    public static boolean epsilonEquals(int a, int b, int epsilon) {
+        return (a - epsilon <= b) && (a + epsilon >= b);
+    }
+
+    public static boolean allCloseTo(final List<Double> list, double value, double epsilon) {
+        boolean result = true;
+        for (Double value_in : list) {
+            result &= epsilonEquals(value_in, value, epsilon);
+        }
+        return result;
+    }
+}
