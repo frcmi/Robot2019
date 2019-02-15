@@ -4,7 +4,7 @@ import frc.robot.lib.util.SnailMath;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonValue;
-import org.mercerislandschools.mihs.frc.vision.client.model.ErrorInfo;
+import frc.robot.lib.trajectory.jetsoninterface.model.ErrorInfo;
 
 //A WaypointSequence is a sequence of Waypoints.  #whatdidyouexpect
 public class WaypointSequence {

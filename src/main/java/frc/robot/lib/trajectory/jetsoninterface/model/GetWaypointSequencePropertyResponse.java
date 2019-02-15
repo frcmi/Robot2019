@@ -1,4 +1,4 @@
-package org.mercerislandschools.mihs.frc.vision.client.model;
+package frc.robot.lib.trajectory.jetsoninterface.model;
 
 import frc.robot.lib.trajectory.WaypointSequence;
 import org.codehaus.jackson.annotate.JsonCreator;
