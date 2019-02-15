@@ -1,4 +1,4 @@
-package org.mercerislandschools.mihs.frc.vision.client;
+package frc.robot.lib.trajectory.jetsoninterface;
 
 import frc.robot.lib.trajectory.WaypointSequence;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -13,7 +13,7 @@ import javax.ws.rs.core.UriBuilder;
 
 
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
-import org.mercerislandschools.mihs.frc.vision.client.model.*;
+import frc.robot.lib.trajectory.jetsoninterface.model.*;
 
 public class VisionClient {
     public static final String defaultServerUrl = "http://tegra-ubuntu.local:5800";

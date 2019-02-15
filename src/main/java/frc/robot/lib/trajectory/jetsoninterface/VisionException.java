@@ -1,6 +1,6 @@
-package org.mercerislandschools.mihs.frc.vision.client;
+package frc.robot.lib.trajectory.jetsoninterface;
 
-import org.mercerislandschools.mihs.frc.vision.client.model.ErrorInfo;
+import frc.robot.lib.trajectory.jetsoninterface.model.ErrorInfo;
 
 public class VisionException extends RuntimeException {
     public ErrorInfo errorInfo;

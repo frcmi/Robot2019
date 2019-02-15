@@ -1,13 +1,17 @@
-package org.mercerislandschools.mihs.frc.vision.client;
+package frc.robot.lib.trajectory.jetsoninterface;
 
 import frc.robot.lib.trajectory.WaypointSequence;
 
 import java.util.concurrent.TimeUnit;
 
+<<<<<<< HEAD:src/main/java/org/mercerislandschools/mihs/frc/vision/client/App.java
 import static java.lang.Math.PI;
 //import java.lang.Math.*;
 
 public class App {
+=======
+public class QueryJetsonTest {
+>>>>>>> Moved jetson web interface library into lib/trajectory:src/main/java/frc/robot/lib/trajectory/jetsonInterface/QueryJetsonTest.java
     public static void main(String[] args) {
         String url = "http://tegra-ubuntu.local:5800";
         if (args.length > 0) {

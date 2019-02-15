@@ -1,4 +1,4 @@
-package org.mercerislandschools.mihs.frc.vision.client;
+package frc.robot.lib.trajectory.jetsoninterface;
 
 import java.util.concurrent.TimeUnit;
 
