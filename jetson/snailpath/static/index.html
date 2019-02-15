@@ -1,0 +1,138 @@
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>SnailPath</title>
+		<link rel="shortcut icon" href="/img/favicon.png">
+		<link rel="stylesheet" href="/css/jquery-ui.css">
+		<link rel="stylesheet" href="/css/app.css">
+	</head>
+	<body>
+		<main ng-app="snailpath" ng-controller="app">
+			<table class="tablelayout" ng-controller="canvases">
+				<tr height="50%">
+					<td colspan="2">
+						<table>
+							<tr>
+								<td>
+									<button type="button" ng-click="flip()">Flip</button>
+									<button type="button" ng-click="animate()">Animate</button>
+									<button type="button" ng-click="draw()">Draw</button>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div>
+										<canvas id="cvForeground" class="cv"></canvas>
+										<canvas id="cvBackground" class="cv"></canvas>
+									</div>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+
+				<tr height="50%">
+					<td width="50%">
+						<table ng-controller="pointManager" height="100%" width="100%">
+							<tr height="5%">
+								<td>
+									<button ng-click="newPoint()">New</button>
+								</td>
+							</tr>
+							<tr height="95%">
+								<td>
+									<div class="scrolly fullheight">
+										<table height="100%" width="100%">
+											<thead>
+												<th>Enabled</th>
+												<th>Name</th>
+												<th>X</th>
+												<th>Y</th>
+												<th>Rotation</th>
+												<th>Actions</th>
+											</thead>
+											<tbody>
+												<tr ng-repeat="point in points">
+													<td>
+														<input type="checkbox" class="pi-checkbox" ng-model="point.enabled" ng-change="draw()">
+													</td>
+													<td>
+														<input type="text" class="pi-name" ng-model="point.name" ng-change="draw()">
+													</td>
+													<td>
+														<input type="number" class="pi-coord" ng-model="point.x" ng-change="draw()">
+													</td>
+													<td>
+														<input type="number" class="pi-coord" ng-model="point.y" ng-change="draw()">
+													</td>
+													<td>
+														<input type="number" class="pi-coord" ng-model="point.rotation" ng-change="draw()">
+													</td>
+													<td>
+														<button type="button" ng-click="deletePoint(point)">X</button>
+														<button type="button" ng-click="swapPoint(point,-1)" ng-disabled="points[0]==point">&uarr;</button>
+														<button type="button" ng-click="swapPoint(point,1)" ng-disabled="points[points.length-1]==point">&darr;</button>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</td>
+							</tr>
+						</table>
+					</td>
+
+					<td width="50%">
+						<table height="100%" width="100%" ng-controller="info">
+							<tr height="5%">
+								<td>
+									<button ng-click="seltab='file'">File</button>
+									<button ng-click="seltab='config'">Config</button>
+									<button ng-click="seltab='notes'">Release Notes</button>
+									<button ng-click="seltab='quicklinks'">Quick Links</button>
+									<button ng-click="seltab='about'">About</button>
+								</td>
+							</tr>
+
+							<tr height="95%">
+								<td>
+									<div class="infowrapper">
+										<div ng-controller="infoFile" ng-show="seltab=='file'">
+											<label for="infoFileFilename">Filename</label>
+											<input type="text" id="infoFileFilename" ng-model="creatingFilename">
+											<button type="button" ng-click="saveFile()">Save</button>
+											<button type="button" ng-click="loadFile()">Load</button>
+										</div>
+										<div ng-controller="infoConfig" ng-show="seltab=='config'">
+											<p ng-bind="config"></p>
+										</div>
+										<div ng-controller="infoReleaseNotes" ng-show="seltab=='notes'">
+											<h2>Initial Release (2019.02.14)</h2>
+											<p>Semi-working release which can interface to APIs. I would not trust the map right now. It seems a little off.</p>
+										</div>
+										<div ng-controller="infoQuickLinks" ng-show="seltab=='quicklinks'">
+											<ul>
+												<li><a href="http://tegra-ubuntu.local:5800/sv/api/v1.0/properties" target="_blank">Properties</a></li>
+											</ul>
+										</div>
+										<div ng-controller="infoAbout" ng-show="seltab=='about'">
+											<pre ng-bind="aboutInfo"></pre>
+										</div>
+									</div>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</main>
+
+		<script src="/js/angular.js"></script>
+		<script src="/js/underscore.js"></script>
+		<script src="/js/jquery.js"></script>
+		<script src="/js/jquery-ui.js"></script>
+		<script src="/js/app.js"></script>
+	</body>
+</html>

@@ -1,0 +1,53 @@
+body {
+	margin: 0;
+}
+
+.tablelayout {
+	height: 100%;
+	width: 100%;
+}
+
+.tablelayout, .tablelayout td, .tablelayout th {
+	border: 1px solid black;
+}
+
+.tablelayout td {
+	vertical-align: top;
+}
+
+.scrollx {
+	overflow-x: scroll;
+}
+
+.scrolly {
+	overflow-y: scroll;
+}
+
+.scrollxy {
+	overflow: scroll;
+}
+
+.fullheight {
+	max-height: 100%;
+}
+
+.pi-coord {
+	width: 4em;
+}
+
+.pi-enabled, .pi-coord, .pi-name {
+	width: 100%;
+}
+
+#cvForeground {
+	z-index: 13371;
+	position: absolute;
+}
+
+#cvBackground {
+	z-index: 13370;
+}
+
+.ui-dialog {
+	z-index: 13372;
+}
