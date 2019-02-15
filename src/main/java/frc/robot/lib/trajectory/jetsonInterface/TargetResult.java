@@ -1,4 +1,4 @@
-package org.mercerislandschools.mihs.frc.vision.client;
+package frc.robot.lib.trajectory.jetsoninterface;
 
 public final class TargetResult
 {

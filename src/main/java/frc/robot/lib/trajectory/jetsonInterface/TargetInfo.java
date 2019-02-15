@@ -1,6 +1,6 @@
-package org.mercerislandschools.mihs.frc.vision.client;
+package frc.robot.lib.trajectory.jetsoninterface;
 
-import org.mercerislandschools.mihs.frc.vision.client.model.TargetInfoResponseData;
+import frc.robot.lib.trajectory.jetsoninterface.model.TargetInfoResponseData;
 
 public class TargetInfo {
     public long nanoTime;

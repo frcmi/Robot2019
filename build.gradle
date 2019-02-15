@@ -69,6 +69,6 @@ jar {
 
 task query_jetson(type:JavaExec) {
     dependsOn ':build'
-    main="org.mercerislandschools.mihs.frc.vision.client.App"
+    main="frc.robot.lib.trajectory.jetsoninterface.QueryJetsonTest"
     classpath = sourceSets.main.runtimeClasspath
 }

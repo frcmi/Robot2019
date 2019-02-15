@@ -121,10 +121,6 @@ public class FollowVisionSpline extends CommandBase {
             lastError = error;
             integral += error;
 
-            //Unfinished
-            
-
-
             return new double[]{1.0, 1.0};
         }
     }

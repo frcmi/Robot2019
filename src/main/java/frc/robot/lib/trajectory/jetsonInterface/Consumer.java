@@ -1,10 +1,10 @@
-package org.mercerislandschools.mihs.frc.vision.client;
+package frc.robot.lib.trajectory.jetsoninterface;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 
-import org.mercerislandschools.mihs.frc.vision.client.model.ErrorInfo;
+import frc.robot.lib.trajectory.jetsoninterface.model.ErrorInfo;
 
 public class Consumer {
     public static ErrorInfo consumeWithJsonb(String targetUrl) {
