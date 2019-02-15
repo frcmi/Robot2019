@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 
-//A subsystem to control a single motor, to test the code or system
 public class Pneumatics extends Subsystem {
 
     // Subsystems are singleton classes, so there should only be one of each class. Instead

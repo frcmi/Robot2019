@@ -5,7 +5,7 @@ import frc.robot.lib.util.*;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
 
-public class BallShooter extends Manipulator {
+public class BallShooter extends Subsystem {
     
     public static BallShooter instance;
 

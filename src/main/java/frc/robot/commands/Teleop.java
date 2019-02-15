@@ -3,15 +3,23 @@ package frc.robot.commands;
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.lib.util.RobotMap;
+import frc.robot.subsystems.BallShooter;
 import frc.robot.subsystems.Pneumatics;
+import frc.robot.subsystems.TankDrive;
 
 //Command to move the test motor
 public class Teleop extends CommandBase {
+
+    BallShooter shooter;
+    Pneumatics hatchPusher;
+    TankDrive drive;
+
     public Teleop() {
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
         requires(driveTrain);
         requires(pneumatics);
+        // requires(BallShooter);
     }	
 
     // Called when the command starts running
@@ -24,9 +32,10 @@ public class Teleop extends CommandBase {
     @Override
     protected void execute() {
         driveTrain.updatePID();
-        driveTrain.moveLeftDrive(RobotMap.getLeftY());
-        driveTrain.moveRightDrive(RobotMap.getRightY());
-        pneumatics.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
+        drive.moveLeftDrive(RobotMap.getLeftY());
+        drive.moveRightDrive(RobotMap.getRightY());
+        shooter.shoot(RobotMap.getRightX());
+        hatchPusher.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
         
     }
 
@@ -37,6 +46,9 @@ public class Teleop extends CommandBase {
 
     protected void initialize() {
         System.out.println("Starting teleop");
+        shooter = BallShooter.getInstance();
+        hatchPusher = Pneumatics.getInstance();
+        drive = TankDrive.getInstance();
     }
 
 
