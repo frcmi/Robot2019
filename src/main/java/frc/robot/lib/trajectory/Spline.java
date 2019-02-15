@@ -214,4 +214,5 @@ public class Spline {
     public String toString() {
         return "a=" + a_ + "; b=" + b_ + "; c=" + c_ + "; d=" + d_ + "; e=" + e_;
     }
+
 }

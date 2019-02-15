@@ -14,6 +14,7 @@ public class RobotMap {
     public static Victor frontRight = new Victor(3);
     public static Victor backLeft = new Victor(0);
     public static Victor frontLeft = new Victor(1);
+    public static Victor ballShooter = new Victor(4);
     public static Joystick xbox360 = new Joystick(0);
     public static DoubleSolenoid sol = new DoubleSolenoid(3, 7);
 

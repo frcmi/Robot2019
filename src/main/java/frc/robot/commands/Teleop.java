@@ -27,6 +27,7 @@ public class Teleop extends CommandBase {
         driveTrain.moveLeftDrive(RobotMap.getLeftY());
         driveTrain.moveRightDrive(RobotMap.getRightY());
         pneumatics.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
+        
     }
 
     // Called just before this Command runs for the first time
