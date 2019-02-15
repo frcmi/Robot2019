@@ -78,8 +78,13 @@ sudo apt-get install -y \
   qt5-default \
   v4l-utils \
   zlib1g-dev \
+  nodejs \
+  npm \
+  maven \
+  nginx
   # <End-of-list>
 
+sudo apt-get remove -y libreoffice
 
 ssh-keygen -R github.com
 ssh-keyscan -H github.com >> ~/.ssh/known_hosts
@@ -192,5 +197,17 @@ fi
 
 for pipc in pip pip3; do
  $pipc install numpy vext vext.gi PyGObject imutils
-done 
-	
+done
+
+# Snail Path
+cd ~/.local/bin/Robot2018/snailpath
+npm install
+
+# etc
+cd ~/.local/etc
+sudo cp * /etc/ -r
+
+# Services
+cd ~/.local/services
+sudo cp * /lib/systemd/services -r
+
