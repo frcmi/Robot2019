@@ -42,6 +42,5 @@ public class Pneumatics extends Subsystem {
     }
 
     public void stop() {
-        mainSol.set(Value.kOff);
     }
 }

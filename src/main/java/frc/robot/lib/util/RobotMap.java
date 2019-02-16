@@ -10,12 +10,12 @@ import com.kauailabs.navx.frc.AHRS;
 // All output and input objects (motors, cameras, encoders, etc) are defined here
 public class RobotMap {
     //Define outputs
-    public static Victor backRight = new Victor(2);;
-    public static Victor frontRight = new Victor(3);
-    public static Victor backLeft = new Victor(0);
-    public static Victor frontLeft = new Victor(1);
+    public static Victor backRight = new Victor(0);;
+    public static Victor frontRight = new Victor(1);
+    public static Victor backLeft = new Victor(3);
+    public static Victor frontLeft = new Victor(2);
     public static Victor ballShooter = new Victor(4);
-    public static DoubleSolenoid sol = new DoubleSolenoid(3, 7);
+    public static DoubleSolenoid sol = new DoubleSolenoid(7, 3);
 
     //Define inputs:
     public static Encoder leftEncoder = new Encoder(0,1);
