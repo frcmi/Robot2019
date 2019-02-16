@@ -27,7 +27,7 @@ public class BallShooter extends Subsystem {
         setDefaultCommand(null);
     }
 
-    public void shoot(double in) {
+    public void setMotor(double in) {
         shooter.set(in);
     }
 

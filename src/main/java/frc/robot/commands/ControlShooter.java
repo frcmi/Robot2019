@@ -1,42 +1,33 @@
 package frc.robot.commands;
 
 import frc.robot.Robot;
-import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.lib.util.RobotMap;
-import frc.robot.subsystems.BallShooter;
-import frc.robot.subsystems.Pneumatics;
-import frc.robot.subsystems.TankDrive;
+import edu.wpi.first.wpilibj.command.Command;
 
 //Command to move the test motor
-public class Teleop extends CommandBase {
-
-    public Teleop() {
+public class ControlShooter extends CommandBase {
+    public ControlShooter() {
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
-        requires(driveTrain);
+        requires(ballShooter);
     }	
 
     // Called when the command starts running
     @Override
     public void start() {
-
+        ballShooter.setMotor(0.0);
     }
 
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        driveTrain.updatePID();
-        driveTrain.moveLeftDrive(RobotMap.getLeftY());
-        driveTrain.moveRightDrive(RobotMap.getRightY());
+        ballShooter.setMotor(RobotMap.getRightX());
     }
 
     // Called just before this Command runs for the first time
     @Override
-
-
-
     protected void initialize() {
-        System.out.println("Starting teleop");
+       
     }
 
 
@@ -49,7 +40,7 @@ public class Teleop extends CommandBase {
     // Called once after isFinished returns true
     @Override
     protected void end() {
-        driveTrain.stop();
+        ballShooter.stop();
     }
 
     // Called when another command which requires one or more of the same
@@ -62,6 +53,7 @@ public class Teleop extends CommandBase {
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {
+        ballShooter.stop();
         super.cancel();
     }
 }

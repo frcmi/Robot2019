@@ -3,6 +3,8 @@ package frc.robot.commands;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.Pneumatics;
 import frc.robot.subsystems.TankDrive;
+import frc.robot.subsystems.BallShooter;
+import frc.robot.subsystems.Camera;
 
 import edu.wpi.first.wpilibj.command.Command;
 
@@ -11,10 +13,13 @@ import edu.wpi.first.wpilibj.command.Command;
 public abstract class CommandBase extends Command {
     public static DriveTrain driveTrain; //Drive train subsystem
     public static Pneumatics pneumatics; //Pneumatics subsystem
+    public static BallShooter ballShooter;
+    public static Camera camera;
 
     static {
         driveTrain = TankDrive.getInstance();
         pneumatics = Pneumatics.getInstance();
-        //TODO driveTrain constructor
+        ballShooter = BallShooter.getInstance();
+        camera = Camera.getInstance();
     }
 }

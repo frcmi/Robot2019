@@ -13,6 +13,8 @@ import frc.robot.subsystems.DriveTrain;
 import frc.robot.commands.Teleop;
 import frc.robot.commands.UpdateInfo;
 import frc.robot.commands.ControlPneumatics;
+import frc.robot.commands.ControlShooter;
+import frc.robot.commands.ForwardCamera;
 import frc.robot.lib.util.*;
 
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -20,6 +22,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -56,30 +59,6 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().enable();
         System.out.println("Robot initializing");
         info = new RobotInfo();
-
-        // Camera Server Stuff
-
-        new Thread(() -> {
-            int screenWidth = 640;
-            int screenHeight = 480;
-            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-            camera.setResolution(640, 480);
-            
-            CvSink cvSink = CameraServer.getInstance().getVideo();
-            CvSource outputStream = CameraServer.getInstance().putVideo("Camera Output", 640, 480);
-            
-            Mat source = new Mat();
-            Mat output = new Mat();
-            
-            while(!Thread.interrupted()) {
-                cvSink.grabFrame(source);
-                Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
-                outputStream.putFrame(output);
-               // line((screenWidth/2)-20, screenHeight/2, (screenWidth/2)+20, screenHeight/2);  //crosshair horizontal (needs openCV imports)
-               // line(screenWidth/2, (screenHeight/2)-20, screenWidth/2, (screenHeight/2)+20);  //crosshair vertical
-            }
-        }       ).start();
-
         
         //AUTONOMOUS SETUP:
         
@@ -124,6 +103,9 @@ public class Robot extends TimedRobot {
     public void teleopInit() {
         Scheduler.getInstance().removeAll();
         Scheduler.getInstance().add(new Teleop());
+        Scheduler.getInstance().add(new ControlShooter());
+        Scheduler.getInstance().add(new ControlPneumatics());
+        Scheduler.getInstance().add(new ForwardCamera());
     }
     
     // Called periodically during operator control period

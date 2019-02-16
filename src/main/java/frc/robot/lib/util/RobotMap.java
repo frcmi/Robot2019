@@ -30,6 +30,10 @@ public class RobotMap {
     public static Joystick leftThrust = new Joystick(0);
     public static Joystick rightThrust = new Joystick(1);
 
+    //Data about the camera to go to the user
+    public static int userCamResX = 1920;
+    public static int userCamResY = 1080;
+
     //Joystick button mapping
     public static double getLeftX() {
         return leftThrust.getRawAxis(0);

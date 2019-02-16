@@ -1,55 +1,47 @@
 package frc.robot.commands;
 
-import frc.robot.Robot;
-import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.lib.util.RobotMap;
-import frc.robot.subsystems.BallShooter;
-import frc.robot.subsystems.Pneumatics;
-import frc.robot.subsystems.TankDrive;
+import frc.robot.commands.lib.CameraThread;
 
-//Command to move the test motor
-public class Teleop extends CommandBase {
+//Command to forward cammara info to the SmartDashboard
+public class ForwardCamera extends CommandBase {
+    private CameraThread thread;
+    private boolean isFinished;
 
-    public Teleop() {
-        //Requires defines any subsystem dependencies, so more than one command can't
-        //use a subsystem at the same time
-        requires(driveTrain);
-    }	
+    public ForwardCamera() {
+        requires(camera);
+        thread = new CameraThread();
+    }
 
     // Called when the command starts running
     @Override
     public void start() {
-
+        thread.run();
     }
 
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        driveTrain.updatePID();
-        driveTrain.moveLeftDrive(RobotMap.getLeftY());
-        driveTrain.moveRightDrive(RobotMap.getRightY());
+
     }
 
     // Called just before this Command runs for the first time
     @Override
-
-
-
     protected void initialize() {
-        System.out.println("Starting teleop");
+       
     }
 
 
     // Make this return true when this Command no longer needs to run execute()
     @Override
     protected boolean isFinished() {
-        return false;
+        return isFinished;
     }
 
     // Called once after isFinished returns true
     @Override
     protected void end() {
-        driveTrain.stop();
+        thread.stopRunning();
+        isFinished = true;
     }
 
     // Called when another command which requires one or more of the same
@@ -62,6 +54,10 @@ public class Teleop extends CommandBase {
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {
-        super.cancel();
+        end();
+    }
+
+    public void stop(){
+        end();
     }
 }
