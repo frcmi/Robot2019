@@ -39,7 +39,7 @@ public class Camera extends Subsystem {
         camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(screenWidth, screenHeight);
         cvSink = CameraServer.getInstance().getVideo();
-        outputStream = CameraServer.getInstance().putVideo("Camera Output", 640, 480);
+        outputStream = CameraServer.getInstance().putVideo("Camera Output", screenWidth, screenHeight);
         source = new Mat();
         output = new Mat();
     }
