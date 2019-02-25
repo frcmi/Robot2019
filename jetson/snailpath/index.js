@@ -59,7 +59,7 @@ app.post("/api/calculatesplines", function(req, res) {
 		csvPath += `${spline.x},${spline.y},${spline.rotation};`;
 	});
 
-	request.post("http://localhost:8080/api/calculate_splines", {body: csvPath}, function(error, response, body) {
+	request.post("http://localhost:5806/api/calculate_splines", {body: csvPath}, function(error, response, body) {
 		if (error || body == "no") {
 			console.log(csvPath);
 			res.send({status: false, error: error});
@@ -75,6 +75,6 @@ app.post("/api/calculatesplines", function(req, res) {
 	});
 });
 
-app.listen("8081", function() {
+app.listen("5805", function() {
 	console.log("ok and good");
 });
