@@ -39,6 +39,7 @@
 					<version>2.2</version>
 					<configuration>
 						<path>/</path>
+						<port>5806</port>
 					</configuration>
 				</plugin>			
 				<plugin>
@@ -47,7 +48,7 @@
 					<version>2.3.2</version>
 					<configuration>
 						<source>${java-version}</source>
-						<target>${java-version}</target>
+						<target>${java-version}</target?
 					</configuration>
 				</plugin>
 				<plugin>
