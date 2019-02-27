@@ -8,6 +8,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import javax.ws.rs.core.UriBuilder;
+import java.util.*;
 // import java.util.concurrent.locks.Lock;
 // import java.util.concurrent.locks.ReentrantLock;
 
@@ -124,6 +125,23 @@ public class VisionClient {
             throw new VisionException(resp.error);
         }
         return new TargetInfo(resp.data, serverToLocalTime(resp.data.ts_post_mono));
+    }
+
+    // Returns current TargetInfo, handles errors
+    public TargetInfo getTargetInfoHandleErrors(){
+        try{
+            return getTargetInfo();
+        }
+        catch(VisionException e){
+            String[] allowedErrors = {"Unable to find 2 target contours", 
+                                        "Could not find 2 targets", 
+                                        "Hull does not have 6 vertices", 
+                                        "Unable to determine target pose using solvepnp"};
+            if (!Arrays.asList(allowedErrors).contains(e.errorInfo)){
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
     public void setProperty(String name, Object value) {

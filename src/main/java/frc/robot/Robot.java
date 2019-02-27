@@ -9,7 +9,6 @@ package frc.robot;
 
 import frc.robot.commands.Autonomous1;
 import frc.robot.commands.AutonomousCommand;
-import frc.robot.subsystems.DriveTrain;
 import frc.robot.commands.Teleop;
 import frc.robot.commands.UpdateInfo;
 import frc.robot.commands.ControlPneumatics;
@@ -19,21 +18,9 @@ import frc.robot.lib.util.*;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.command.Command;
-import edu.wpi.first.wpilibj.command.CommandGroup;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-// Camera Stuff
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-import edu.wpi.cscore.CvSink;
-import edu.wpi.cscore.CvSource;
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.*;
 
 import java.util.*;
 
@@ -49,7 +36,6 @@ public class Robot extends TimedRobot {
     private Set<AutonomousCommand> autonomousCommands; // The set of all autonomous routines
     public AutonomousCommand autonomousCommand; // The command to be run in the autonomous
     public RobotInfo info; //Static information about the robot (team and starting position)
-    
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.

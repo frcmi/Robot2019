@@ -1,4 +1,5 @@
 package frc.robot.lib.util;
+import frc.robot.lib.trajectory.jetsoninterface.VisionClient;
 
 import edu.wpi.first.wpilibj.Victor;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
@@ -33,6 +34,8 @@ public class RobotMap {
     //Data about the camera to go to the user
     public static int userCamResX = 1920;
     public static int userCamResY = 1080;
+    public static VisionClient visionClient = new VisionClient(null); //you can put an address in the constructor to use something other than the default
+    public static double camDistance = 10.0; //The distance between the two cameras in inches
 
     //Joystick button mapping
     public static double getLeftX() {

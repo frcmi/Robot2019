@@ -1,11 +1,14 @@
 package frc.robot.lib.trajectory.jetsoninterface;
 
+import frc.robot.lib.trajectory.jetsoninterface.model.*;
+
 import frc.robot.lib.trajectory.jetsoninterface.model.TargetInfoResponseData;
 
 public class TargetInfo {
     public long nanoTime;
     public double tvec[] = new double[3];
     public double rvec[] = new double[3];
+    public Calib calib;
 
     public TargetInfo(TargetInfoResponseData data, long nanoTime)
     {
@@ -14,5 +17,6 @@ public class TargetInfo {
             tvec[i] = data.tvec[i][0];
             rvec[i] = data.rvec[i][0];
         }
+        calib = data.calib;
     }
 }

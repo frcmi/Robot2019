@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
 import frc.robot.lib.util.RobotMap;
+import frc.robot.lib.trajectory.jetsoninterface.model.*;
+import frc.robot.lib.trajectory.jetsoninterface.TargetInfo;
+import frc.robot.lib.trajectory.jetsoninterface.VisionException;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import org.opencv.core.Mat;
@@ -9,6 +12,10 @@ import edu.wpi.cscore.CvSink;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.*;
+import java.util.*;
+import org.opencv.core.*;
+import org.opencv.calib3d.Calib3d;
+import org.apache.commons.io.FileUtils;
 
 public class Camera extends Subsystem {
 
@@ -54,8 +61,36 @@ public class Camera extends Subsystem {
     public void forwardFrame(){
         cvSink.grabFrame(source);
         Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
+        drawOnFrame(source);
         outputStream.putFrame(output);
-        // line((screenWidth/2)-20, screenHeight/2, (screenWidth/2)+20, screenHeight/2);  //crosshair horizontal (needs openCV imports)
-        // line(screenWidth/2, (screenHeight/2)-20, screenWidth/2, (screenHeight/2)+20);  //crosshair vertical
+    }
+
+    public void drawOnFrame(Mat src){
+        TargetInfo info = RobotMap.visionClient.getTargetInfoHandleErrors();
+        MatOfDouble rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
+        MatOfDouble tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
+        MatOfDouble mtx = new MatOfDouble(3, 3);
+        for(int row=0;row<3;row++){
+            for(int col=0;col<3;col++)
+                 mtx.put(row, col, info.calib.mtx[row][col]);
+        }
+
+        MatOfDouble dist = new MatOfDouble(3, 3);
+        for(int row=0;row<3;row++){
+            for(int col=0;col<3;col++)
+                 dist.put(row, col, info.calib.dist[row][col]);
+        }
+
+        double camDist = RobotMap.camDistance;
+        double reticleDist = 10.0;
+        double error = camDist - reticleDist;
+        MatOfPoint3f originPts = new MatOfPoint3f(new Point3(0, error, 0), new Point3(3, error, 0), new Point3(0, error+3, 0), new Point3(0, error, 3));
+        MatOfPoint2f pixels = null;
+        Calib3d.projectPoints(originPts, (Mat)rvec, (Mat)tvec, (Mat)mtx, dist, pixels);
+
+
+        Imgproc.line(src, pixels.toArray()[0], pixels.toArray()[1], new Scalar(255, 0, 0));
+        Imgproc.line(src, pixels.toArray()[0], pixels.toArray()[2], new Scalar(0, 255, 0));
+        Imgproc.line(src, pixels.toArray()[0], pixels.toArray()[3], new Scalar(0, 0, 255));
     }
 }
