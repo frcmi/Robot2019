@@ -19,7 +19,9 @@ scriptDir = os.path.dirname(os.path.realpath(__file__))
 #Global configuration
 fisheyeparamspath = os.path.join(scriptDir, "calibrate/fisheyecalibration.txt")
 
-camerapath = "/dev/video1"
+deviceNum = 0
+camerapath = "/dev/video" + str(deviceNum)
+
 
 #Camera configuration
 exposureTime = 41
@@ -418,7 +420,7 @@ class TargetError(RuntimeError):
         super(TargetError, self).__init__(self, *args, **kwargs)
 
 class FrameStream(object):
-    def __init__(self, cap=None, device=1, gp=None, calib=defaultCalib):
+    def __init__(self, cap=None, device=deviceNum, gp=None, calib=defaultCalib):
         self.lock = RLock()
         self.cond = Condition(self.lock)
         self.calib = calib
@@ -862,7 +864,7 @@ class Frame(object):
 
                 # Draw a 1" thick slab version of the tape strips in 3D space
 
-                self.targScreenPoints, self.tspjac = self.draw3DTargetSpace(targ3DPoints, targDrawList)
+                #self.targScreenPoints, self.tspjac = self.draw3DTargetSpace(targ3DPoints, targDrawList)
 
     def drawHatch(self):
         self.draw3DTargetSpace(hatch3DPoints, hatchDrawList)
@@ -881,7 +883,7 @@ class Frame(object):
 
 
 def main():
-    with FrameStream(device=1) as stream:
+    with FrameStream(device=deviceNum) as stream:
         fr = None
         while(cont):
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -890,7 +892,7 @@ def main():
             fr = stream.acquireNew(fr)
             try:
                 fr.process()
-                fr.drawHatch()
+                #fr.drawHatch()
             except TargetError as e:
                 fr.log("Unable to acquire target: %s" % str(e) )
 
