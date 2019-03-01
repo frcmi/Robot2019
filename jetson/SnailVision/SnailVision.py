@@ -19,7 +19,7 @@ scriptDir = os.path.dirname(os.path.realpath(__file__))
 #Global configuration
 fisheyeparamspath = os.path.join(scriptDir, "calibrate/fisheyecalibration.txt")
 
-deviceNum = 0
+deviceNum = 1
 camerapath = "/dev/video" + str(deviceNum)
 
 
