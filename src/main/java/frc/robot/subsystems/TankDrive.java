@@ -14,8 +14,8 @@ public class TankDrive extends DriveTrain {
     // of calling the constructor directly, the client should use getInstance to prevent duplication
     // of Subsystem objects.
     private static TankDrive instance;
-    public static double leftScalar = -1.0; //Change this to offset variation in tread (make it so robot always moves straight)
-    public static double rightScalar = 1.0; // Change this to offset variation in tread
+    public static double leftScalar = -1; //Change this to offset variation in tread (make it so robot always moves straight)
+    public static double rightScalar = 1; // Change this to offset variation in tread
     public static TankDrive getInstance() {
         if (instance==null) instance = new TankDrive();
         return instance;

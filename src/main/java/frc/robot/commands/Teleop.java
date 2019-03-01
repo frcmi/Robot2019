@@ -26,8 +26,21 @@ public class Teleop extends CommandBase {
     @Override
     protected void execute() {
         driveTrain.updatePID();
+<<<<<<< HEAD
         driveTrain.moveLeftDrive(RobotMap.getLeftY());
         driveTrain.moveRightDrive(RobotMap.getRightY());
+=======
+        drive.moveLeftDrive(RobotMap.getLeftY());
+        drive.moveRightDrive(RobotMap.getRightY());
+        if(RobotMap.rightThrust.getPOV() == 0){
+            shooter.shoot(.75);
+        }else if(RobotMap.rightThrust.getPOV() == 180){
+            shooter.shoot(-.75);
+        }else{
+            shooter.shoot(0);
+        }
+        hatchPusher.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
+>>>>>>> Luke is the REAL programming lead
     }
 
     // Called just before this Command runs for the first time

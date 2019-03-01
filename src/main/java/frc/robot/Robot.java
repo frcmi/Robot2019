@@ -45,6 +45,33 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().enable();
         System.out.println("Robot initializing");
         info = new RobotInfo();
+<<<<<<< HEAD
+=======
+        RobotMap.attachCommandsToButtons();
+
+        // Camera Server Stuff
+        new Thread(() -> {
+            int screenWidth = 640;
+            int screenHeight = 480;
+            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+            camera.setResolution(640, 480);
+            
+            CvSink cvSink = CameraServer.getInstance().getVideo();
+            CvSource outputStream = CameraServer.getInstance().putVideo("Camera Output", 640, 480);
+            
+            Mat source = new Mat();
+            Mat output = new Mat();
+            
+            while(!Thread.interrupted()) {
+                cvSink.grabFrame(source);
+                Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
+                outputStream.putFrame(output);
+               // line((screenWidth/2)-20, screenHeight/2, (screenWidth/2)+20, screenHeight/2);  //crosshair horizontal (needs openCV imports)
+               // line(screenWidth/2, (screenHeight/2)-20, screenWidth/2, (screenHeight/2)+20);  //crosshair vertical
+            }
+        }       ).start();
+
+>>>>>>> Luke is the REAL programming lead
         
         //AUTONOMOUS SETUP:
         
