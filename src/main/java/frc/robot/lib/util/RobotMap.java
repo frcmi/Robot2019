@@ -38,13 +38,11 @@ public class RobotMap {
     public static Joystick leftThrust = new Joystick(0);
     public static Joystick rightThrust = new Joystick(1);
 
-<<<<<<< HEAD
     //Data about the camera to go to the user
     public static int userCamResX = 1920;
     public static int userCamResY = 1080;
     public static VisionClient visionClient = new VisionClient(null); //you can put an address in the constructor to use something other than the default
     public static double camDistance = 10.0; //The distance between the two cameras in inches
-=======
     //climber buttons back
     public static JoystickButton climbPistonBackExtend = new JoystickButton(leftThrust, 3);
     public static JoystickButton climbPistonBackRetract = new JoystickButton(leftThrust, 2);
@@ -62,7 +60,6 @@ public class RobotMap {
         climbPistonFrontExtend.whenPressed(new ClimbPistonsFront(Pneumatics.PistonPosition.EXTEND));
         climbPistonFrontRetract.whenPressed(new ClimbPistonsFront(Pneumatics.PistonPosition.RETRACT));
     }
->>>>>>> Luke is the REAL programming lead
 
     //Joystick button mapping
     public static double getLeftX() {
