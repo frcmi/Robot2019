@@ -9,6 +9,9 @@ public class TargetInfo {
     public double tvec[] = new double[3];
     public double rvec[] = new double[3];
     public Calib calib;
+    public double x;
+    public double y;
+    public double rx;
 
     public TargetInfo(TargetInfoResponseData data, long nanoTime)
     {
@@ -18,5 +21,8 @@ public class TargetInfo {
             rvec[i] = data.rvec[i][0];
         }
         calib = data.calib;
+        x = data.x;
+        y = data.y;
+        rx = data.rx;
     }
 }

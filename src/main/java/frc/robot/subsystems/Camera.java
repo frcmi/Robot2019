@@ -65,11 +65,18 @@ public class Camera extends Subsystem {
         outputStream.putFrame(output);
     }
 
+    Mat srcPointer;
+    MatOfDouble rvec;
+    MatOfDouble tvec;
+    MatOfDouble mtx;
+    MatOfDouble dist;
+
     public void drawOnFrame(Mat src){
+        srcPointer = src;
         TargetInfo info = RobotMap.visionClient.getTargetInfoHandleErrors();
-        MatOfDouble rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
-        MatOfDouble tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
-        MatOfDouble mtx = new MatOfDouble(3, 3);
+        rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
+        tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
+        mtx = new MatOfDouble(3, 3);
         for(int row=0;row<3;row++){
             for(int col=0;col<3;col++)
                  mtx.put(row, col, info.calib.mtx[row][col]);
@@ -81,16 +88,28 @@ public class Camera extends Subsystem {
                  dist.put(row, col, info.calib.dist[row][col]);
         }
 
+        drawAxis();
+    }
+
+    //Draw the axis for debugging
+    public void drawAxis(){
         double camDist = RobotMap.camDistance;
         double reticleDist = 10.0;
         double error = camDist - reticleDist;
-        MatOfPoint3f originPts = new MatOfPoint3f(new Point3(0, error, 0), new Point3(3, error, 0), new Point3(0, error+3, 0), new Point3(0, error, 3));
+
+        Point3[] originPts = {new Point3(0, error, 0), new Point3(3, error, 0), new Point3(0, error+3, 0), new Point3(0, error, 3)};
         MatOfPoint2f pixels = null;
-        Calib3d.projectPoints(originPts, (Mat)rvec, (Mat)tvec, (Mat)mtx, dist, pixels);
 
+        drawLine3D(originPts[0], originPts[1], new Scalar(255, 0, 0));
+        drawLine3D(originPts[0], originPts[2], new Scalar(0, 255, 0));
+        drawLine3D(originPts[0], originPts[3], new Scalar(0, 0, 255));
 
-        Imgproc.line(src, pixels.toArray()[0], pixels.toArray()[1], new Scalar(255, 0, 0));
-        Imgproc.line(src, pixels.toArray()[0], pixels.toArray()[2], new Scalar(0, 255, 0));
-        Imgproc.line(src, pixels.toArray()[0], pixels.toArray()[3], new Scalar(0, 0, 255));
+    }
+
+    //Draws a line from two given 3d coordinates
+    public void drawLine3D(Point3 point1, Point3 point2, Scalar color){
+        MatOfPoint2f pixels = null;
+        Calib3d.projectPoints(new MatOfPoint3f(point1, point2), (Mat)rvec, (Mat)tvec, (Mat)mtx, dist, pixels);
+        Imgproc.line(srcPointer, pixels.toArray()[0], pixels.toArray()[1], color);
     }
 }

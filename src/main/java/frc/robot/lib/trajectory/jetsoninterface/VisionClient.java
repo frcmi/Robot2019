@@ -1,5 +1,6 @@
 package frc.robot.lib.trajectory.jetsoninterface;
 
+import frc.robot.lib.util.SnailMath;
 import frc.robot.lib.trajectory.WaypointSequence;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -9,9 +10,9 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import javax.ws.rs.core.UriBuilder;
 import java.util.*;
+
 // import java.util.concurrent.locks.Lock;
 // import java.util.concurrent.locks.ReentrantLock;
-
 
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
@@ -187,5 +188,26 @@ public class VisionClient {
             throw new VisionException(resp.error);
         }
         return resp.data;
+    }
+
+    //Returns the relative postion from robot to the vision target
+    public Delta getRelativePosition(){
+        TargetInfo info = getTargetInfoHandleErrors();
+        return new Delta(info.y/SnailMath.inchesToMeters, info.x/SnailMath.inchesToMeters, -info.rx*Math.PI/180, info.nanoTime);
+    }
+
+    // Stores x and y which represent the distance forward to the board and the sideways distance respectively, and the
+    // sideways angle of the board in radians
+    public class Delta{
+        public double x;
+        public double y;
+        public double theta;
+        public long timeStamp;
+        public Delta(double x, double y, double theta, long timeStamp){
+            this.x = x;
+            this.y = y;
+            this.theta = theta;
+            this.timeStamp = timeStamp;
+        }
     }
 }
