@@ -8,6 +8,7 @@ public class ForwardCamera extends CommandBase {
     private boolean isFinished;
 
     public ForwardCamera() {
+        System.out.println("Creating ForwardCamera command");
         requires(camera);
         thread = new CameraThread();
     }
@@ -15,7 +16,7 @@ public class ForwardCamera extends CommandBase {
     // Called when the command starts running
     @Override
     public void start() {
-        thread.start();
+        System.out.println("Starting CameraThread");
     }
 
     // Called periodically while the command is running
@@ -27,7 +28,9 @@ public class ForwardCamera extends CommandBase {
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-       
+        System.out.println("Initializing forwardCamera command");
+        thread.start();
+
     }
 
 
@@ -42,6 +45,7 @@ public class ForwardCamera extends CommandBase {
     protected void end() {
         thread.stopRunning();
         isFinished = true;
+        System.out.println("Ending forwardCamera command");
     }
 
     // Called when another command which requires one or more of the same

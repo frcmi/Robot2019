@@ -2,6 +2,7 @@ package frc.robot.lib.trajectory.jetsoninterface;
 
 import frc.robot.lib.util.SnailMath;
 import frc.robot.lib.trajectory.WaypointSequence;
+import frc.robot.lib.util.RobotMap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -18,7 +19,7 @@ import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
 
 public class VisionClient {
-    public static final String defaultServerUrl = "http://tegra-ubuntu.local:5800";
+    public static final String defaultServerUrl = RobotMap.jetsonAddress;
     public static int numSyncSamples = 20;
     public static double nanosPerSecond = 1000000000.0;
 
@@ -128,22 +129,6 @@ public class VisionClient {
         return new TargetInfo(resp.data, serverToLocalTime(resp.data.ts_post_mono));
     }
 
-    // Returns current TargetInfo, handles errors
-    public TargetInfo getTargetInfoHandleErrors(){
-        try{
-            return getTargetInfo();
-        }
-        catch(VisionException e){
-            String[] allowedErrors = {"Unable to find 2 target contours", 
-                                        "Could not find 2 targets", 
-                                        "Hull does not have 6 vertices", 
-                                        "Unable to determine target pose using solvepnp"};
-            if (!Arrays.asList(allowedErrors).contains(e.errorInfo)){
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
 
     public void setProperty(String name, Object value) {
         SimpleResponse resp = proxy.setProperty(name, value);
@@ -190,24 +175,4 @@ public class VisionClient {
         return resp.data;
     }
 
-    //Returns the relative postion from robot to the vision target
-    public Delta getRelativePosition(){
-        TargetInfo info = getTargetInfoHandleErrors();
-        return new Delta(info.y/SnailMath.inchesToMeters, info.x/SnailMath.inchesToMeters, -info.rx*Math.PI/180, info.nanoTime);
-    }
-
-    // Stores x and y which represent the distance forward to the board and the sideways distance respectively, and the
-    // sideways angle of the board in radians
-    public class Delta{
-        public double x;
-        public double y;
-        public double theta;
-        public long timeStamp;
-        public Delta(double x, double y, double theta, long timeStamp){
-            this.x = x;
-            this.y = y;
-            this.theta = theta;
-            this.timeStamp = timeStamp;
-        }
-    }
 }

@@ -54,6 +54,7 @@ dependencies {
     compile 'org.glassfish.jersey.core:jersey-client:2.0-m04'
     compile 'org.jboss.resteasy:resteasy-client:3.0.14.Final'
     compile 'org.jboss.resteasy:resteasy-jackson-provider:2.3.4.Final'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.9.6'
     nativeZip wpi.deps.vendor.jni(wpi.platforms.roborio)
     nativeDesktopZip wpi.deps.vendor.jni(wpi.platforms.desktop)
     testCompile 'junit:junit:4.12'

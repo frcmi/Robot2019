@@ -1,9 +1,12 @@
 package frc.robot.lib.trajectory.jetsoninterface;
+import frc.robot.lib.util.SnailMath;
+import frc.robot.lib.util.RobotMap;
 
 import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
 public class VisionPoller extends Thread {
-    public final String defaultServerUrl = "http://integra-ubuntu.local:5800";
+    public final String defaultServerUrl = RobotMap.jetsonAddress;
 
     private String serverUrl;
     private VisionClient client;
@@ -12,7 +15,14 @@ public class VisionPoller extends Thread {
     private boolean shutdownNow = false;
     private long pollCount = 0;
 
-    public VisionPoller(String serverUrl)
+    private static VisionPoller instance;
+
+    public static VisionPoller getInstance(){
+        if (instance == null) instance = new VisionPoller(RobotMap.jetsonAddress);
+        return instance;
+    }
+
+    private VisionPoller(String serverUrl)
     {
         if (serverUrl == null || serverUrl.length() == 0) {
             serverUrl = defaultServerUrl;
@@ -51,6 +61,23 @@ public class VisionPoller extends Thread {
         return result;
     }
 
+    // Returns current TargetInfo, handles errors
+    public TargetInfo getLatestTargetInfoHandleErrors(){
+        TargetResult latest = getLatestTargetInfo();
+        if(latest.success == true){
+            return latest.info;
+        }
+        else{
+            String[] allowedErrors = {"Unable to find 2 target contours", 
+                                        "Could not find 2 targets", 
+                                        "Hull does not have 6 vertices", 
+                                        "Unable to determine target pose using solvepnp"};
+            if (!Arrays.asList(allowedErrors).contains(latest.failureReason)){
+                System.out.println("Error getting TargetInfo:" + latest.failureReason);
+            }
+            return null;
+        }
+    }
     public synchronized TargetResult getNewTargetInfo(TargetInfo currentTargetInfo, long maxWaitMilliseconds)
     {
         TargetResult result;
@@ -165,4 +192,29 @@ public class VisionPoller extends Thread {
         }
     }
 
+    //Returns the relative postion from robot to the vision target
+    public Delta getRelativePosition(){
+        TargetInfo info = getLatestTargetInfoHandleErrors();
+        if (info == null){
+            return null;
+        }
+        else{
+            return new Delta(info.y/SnailMath.inchesToMeters, info.x/SnailMath.inchesToMeters, -info.rx*Math.PI/180, info.nanoTime);
+        }
+    }
+
+    // Stores x and y which represent the distance forward to the board and the sideways distance respectively, and the
+    // sideways angle of the board in radians
+    public class Delta{
+        public double x;
+        public double y;
+        public double theta;
+        public long timeStamp;
+        public Delta(double x, double y, double theta, long timeStamp){
+            this.x = x;
+            this.y = y;
+            this.theta = theta;
+            this.timeStamp = timeStamp;
+        }
+    }
 }

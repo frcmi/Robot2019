@@ -1,6 +1,7 @@
 package frc.robot.commands.lib;
 
 import frc.robot.subsystems.Camera;
+import java.lang.Thread;
 
 public class CameraThread extends Thread{
     private volatile boolean runtimeFlag;
@@ -15,8 +16,6 @@ public class CameraThread extends Thread{
         runtimeFlag = true;
         while(runtimeFlag){
             Camera.getInstance().forwardFrame();
-            int fps = 30;
-            thread.sleep(1000/fps);
         }
         System.out.println("Camera forwarding thread exited cleanly");
     }

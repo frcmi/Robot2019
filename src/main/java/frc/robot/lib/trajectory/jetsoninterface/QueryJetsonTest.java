@@ -16,7 +16,7 @@ public class QueryJetsonTest {
         
         long nano1sec = 1000000000L;
 
-        VisionPoller vp = new VisionPoller(url);
+        VisionPoller vp = VisionPoller.getInstance();
 
         try {
             TimeUnit.MILLISECONDS.sleep(2000);

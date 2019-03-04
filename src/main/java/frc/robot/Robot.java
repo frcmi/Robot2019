@@ -15,6 +15,7 @@ import frc.robot.commands.ControlPneumatics;
 import frc.robot.commands.ControlShooter;
 import frc.robot.commands.ForwardCamera;
 import frc.robot.lib.util.*;
+import frc.robot.lib.trajectory.jetsoninterface.VisionPoller;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -45,7 +46,7 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().enable();
         System.out.println("Robot initializing");
         info = new RobotInfo();
-        
+        VisionPoller.getInstance();
         //AUTONOMOUS SETUP:
         
         autonomousCommands = new TreeSet<AutonomousCommand>();
@@ -88,10 +89,11 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         Scheduler.getInstance().removeAll();
-        Scheduler.getInstance().add(new Teleop());
-        Scheduler.getInstance().add(new ControlShooter());
-        Scheduler.getInstance().add(new ControlPneumatics());
+        System.out.println("Running teleopInit");
         Scheduler.getInstance().add(new ForwardCamera());
+        //Scheduler.getInstance().add(new Teleop());
+        //Scheduler.getInstance().add(new ControlShooter());
+        //Scheduler.getInstance().add(new ControlPneumatics());
     }
     
     // Called periodically during operator control period

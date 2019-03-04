@@ -4,6 +4,7 @@ import frc.robot.lib.util.RobotMap;
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
 import frc.robot.lib.trajectory.jetsoninterface.TargetInfo;
 import frc.robot.lib.trajectory.jetsoninterface.VisionException;
+import frc.robot.lib.trajectory.jetsoninterface.VisionPoller;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import org.opencv.core.Mat;
@@ -46,6 +47,7 @@ public class Camera extends Subsystem {
         camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(screenWidth, screenHeight);
         cvSink = CameraServer.getInstance().getVideo();
+        cvSink.setEnabled(true);
         outputStream = CameraServer.getInstance().putVideo("Camera Output", screenWidth, screenHeight);
         source = new Mat();
         output = new Mat();
@@ -59,10 +61,18 @@ public class Camera extends Subsystem {
     
     //Called every tick by a thread when the ForwardCamera command is running
     public void forwardFrame(){
-        cvSink.grabFrame(source);
-        Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
-        drawOnFrame(source);
-        outputStream.putFrame(output);
+        long frameTime = cvSink.grabFrame(source);
+        if(frameTime == 0){
+            System.out.println("cvSink.grabFrame() failed:");
+            System.out.println(cvSink.getError());
+            try{
+                Thread.sleep(50);
+            } catch(InterruptedException e){}
+        } else{
+            Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
+            drawOnFrame(source);
+            outputStream.putFrame(output);
+        }
     }
 
     Mat srcPointer;
@@ -73,22 +83,24 @@ public class Camera extends Subsystem {
 
     public void drawOnFrame(Mat src){
         srcPointer = src;
-        TargetInfo info = RobotMap.visionClient.getTargetInfoHandleErrors();
-        rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
-        tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
-        mtx = new MatOfDouble(3, 3);
-        for(int row=0;row<3;row++){
-            for(int col=0;col<3;col++)
-                 mtx.put(row, col, info.calib.mtx[row][col]);
+        TargetInfo info = VisionPoller.getInstance().getLatestTargetInfoHandleErrors();
+        if(info != null){
+            rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
+            tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
+            mtx = new MatOfDouble(3, 3);
+            for(int row=0;row<3;row++){
+                for(int col=0;col<3;col++)
+                     mtx.put(row, col, info.calib.mtx[row][col]);
+            }
+    
+            MatOfDouble dist = new MatOfDouble(3, 3);
+            for(int row=0;row<3;row++){
+                for(int col=0;col<3;col++)
+                     dist.put(row, col, info.calib.dist[row][col]);
+            }
+    
+            drawAxis();
         }
-
-        MatOfDouble dist = new MatOfDouble(3, 3);
-        for(int row=0;row<3;row++){
-            for(int col=0;col<3;col++)
-                 dist.put(row, col, info.calib.dist[row][col]);
-        }
-
-        drawAxis();
     }
 
     //Draw the axis for debugging

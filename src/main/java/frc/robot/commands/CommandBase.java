@@ -18,7 +18,7 @@ public abstract class CommandBase extends Command {
 
     static {
         driveTrain = TankDrive.getInstance();
-        pneumatics = Pneumatics.getInstance();
+        // pneumatics = Pneumatics.getInstance();
         ballShooter = BallShooter.getInstance();
         camera = Camera.getInstance();
     }

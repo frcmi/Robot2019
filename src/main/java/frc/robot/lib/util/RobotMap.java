@@ -21,9 +21,9 @@ public class RobotMap {
     public static Victor backLeft = new Victor(3);
     public static Victor frontLeft = new Victor(2);
     public static Victor ballShooter = new Victor(4);
-    public static DoubleSolenoid sol = new DoubleSolenoid(7, 3);
-    public static DoubleSolenoid liftBack = new DoubleSolenoid(2, 1);
-    public static DoubleSolenoid liftFront = new DoubleSolenoid(4, 5);
+    public static DoubleSolenoid sol; //= new DoubleSolenoid(7, 3);
+    public static DoubleSolenoid liftBack; // = new DoubleSolenoid(2, 1);
+    public static DoubleSolenoid liftFront; // = new DoubleSolenoid(4, 5);
 
     //Define inputs:
     public static Encoder leftEncoder = new Encoder(0,1);
@@ -39,10 +39,17 @@ public class RobotMap {
     public static Joystick rightThrust = new Joystick(1);
 
     //Data about the camera to go to the user
-    public static int userCamResX = 1920;
-    public static int userCamResY = 1080;
-    public static VisionClient visionClient = new VisionClient(null); //you can put an address in the constructor to use something other than the default
+    public static int userCamResX = 640;
+    public static int userCamResY = 480;
+
+    //jetson information
+    // public static String jetsonAddress = "http://tegra-ubuntu.local:5800";
+    public static String jetsonAddress = "http://10.59.37.54:5800";
+
+    // public static VisionClient visionClient = new VisionClient(null); //you can put an address in the constructor to use something other than the default
+
     public static double camDistance = 10.0; //The distance between the two cameras in inches
+
     //climber buttons back
     public static JoystickButton climbPistonBackExtend = new JoystickButton(leftThrust, 3);
     public static JoystickButton climbPistonBackRetract = new JoystickButton(leftThrust, 2);
