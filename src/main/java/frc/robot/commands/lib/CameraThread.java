@@ -15,6 +15,8 @@ public class CameraThread extends Thread{
         runtimeFlag = true;
         while(runtimeFlag){
             Camera.getInstance().forwardFrame();
+            int fps = 30;
+            thread.sleep(1000/fps);
         }
         System.out.println("Camera forwarding thread exited cleanly");
     }

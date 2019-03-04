@@ -15,7 +15,7 @@ public class ForwardCamera extends CommandBase {
     // Called when the command starts running
     @Override
     public void start() {
-        thread.run();
+        thread.start();
     }
 
     // Called periodically while the command is running
