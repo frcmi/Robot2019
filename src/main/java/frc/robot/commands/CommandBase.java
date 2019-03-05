@@ -5,6 +5,7 @@ import frc.robot.subsystems.Pneumatics;
 import frc.robot.subsystems.TankDrive;
 import frc.robot.subsystems.BallShooter;
 import frc.robot.subsystems.Camera;
+import frc.robot.subsystems.Light;
 
 import edu.wpi.first.wpilibj.command.Command;
 
@@ -15,11 +16,13 @@ public abstract class CommandBase extends Command {
     public static Pneumatics pneumatics; //Pneumatics subsystem
     public static BallShooter ballShooter;
     public static Camera camera;
+    public static Light light;
 
     static {
         driveTrain = TankDrive.getInstance();
-        // pneumatics = Pneumatics.getInstance();
+        pneumatics = Pneumatics.getInstance();
         ballShooter = BallShooter.getInstance();
         camera = Camera.getInstance();
+        light = Light.getInstance();
     }
 }

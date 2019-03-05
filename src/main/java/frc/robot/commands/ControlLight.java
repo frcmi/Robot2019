@@ -9,12 +9,12 @@ import frc.robot.subsystems.TankDrive;
 import frc.robot.subsystems.Light;
 
 //Command to move the test motor
-public class Teleop extends CommandBase {
+public class ControlLight extends CommandBase {
 
-    public Teleop() {
+    public ControlLight() {
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
-        requires(driveTrain);
+        requires(light);
     }	
 
     // Called when the command starts running
@@ -24,29 +24,19 @@ public class Teleop extends CommandBase {
     }
 
     // Called periodically while the command is running
+    private boolean lastButtonState = false;
     @Override
     protected void execute() {
-        driveTrain.updatePID();
-        driveTrain.moveLeftDrive(RobotMap.getLeftY());
-        driveTrain.moveRightDrive(RobotMap.getRightY());
-        
-        if(RobotMap.rightThrust.getPOV() == 0){
-            ballShooter.setMotor(255);
-        }else if(RobotMap.rightThrust.getPOV() == 180){
-            ballShooter.setMotor(-255);
-        }else{
-            ballShooter.setMotor(0);
+        if(RobotMap.getMidButton() && !lastButtonState){
+            light.toggle();
         }
-        pneumatics.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
+
+        lastButtonState = RobotMap.getMidButton();
     }
 
     // Called just before this Command runs for the first time
     @Override
-
-
-
     protected void initialize() {
-        System.out.println("Starting teleop");
     }
 
 
@@ -59,7 +49,7 @@ public class Teleop extends CommandBase {
     // Called once after isFinished returns true
     @Override
     protected void end() {
-        driveTrain.stop();
+        light.set(0);
     }
 
     // Called when another command which requires one or more of the same

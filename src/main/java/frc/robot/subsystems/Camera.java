@@ -24,6 +24,7 @@ public class Camera extends Subsystem {
     // of calling the constructor directly, the client should use getInstance to prevent duplication
     // of Subsystem objects.
     private static Camera instance;
+    
 
     public static Camera getInstance() {
         if (instance==null) instance = new Camera();
