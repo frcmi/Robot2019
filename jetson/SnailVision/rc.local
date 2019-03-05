@@ -1,0 +1,26 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+touch /tmp/jetpack.log
+echo "starting script to send ip to host" >> /tmp/jetpack.log
+/home/nvidia/report_ip_to_host.sh &
+echo "started script to send ip to host" >> /tmp/jetpack.log
+
+if [ -e /home/nvidia/SnailVision/start-vision-server.sh ]; then
+
+  # Start the snailvision server
+  su -l nvidia -c '. /etc/profile && /home/nvidia/SnailVision/start-vision-server.sh'
+
+fi
+
+exit 0
