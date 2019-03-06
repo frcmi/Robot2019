@@ -29,9 +29,9 @@ public class BallShooter extends Subsystem {
 
     public void setMotor(boolean valOne, boolean valTwo) {
         if (valOne) {
-            shooter.set(1.0);
+            shooter.set(0.5);
         } else if (valTwo) {
-            shooter.set(-1.0);
+            shooter.set(-0.5);
         }
     }
 
