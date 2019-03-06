@@ -27,8 +27,12 @@ public class BallShooter extends Subsystem {
         setDefaultCommand(null);
     }
 
-    public void setMotor(double in) {
-        shooter.set(in);
+    public void setMotor(boolean valOne, boolean valTwo) {
+        if (valOne) {
+            shooter.set(1.0);
+        } else if (valTwo) {
+            shooter.set(-1.0);
+        }
     }
 
     public void stop() {

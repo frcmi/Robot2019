@@ -9,12 +9,13 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.subsystems.Pneumatics;
+import frc.robot.subsystems.BottomPistons;
+import frc.robot.lib.util.RobotMap;
 
-public class ClimbPistonsBack extends Command {
-  private Pneumatics.PistonPosition position;
+public class ControlPistons extends CommandBase {
 
-  public ClimbPistonsBack(Pneumatics.PistonPosition position) {
-    this.position = position;
+  public ControlPistons() {
+    requires(bottomPistons);
   }
 
   // Called just before this Command runs the first time
@@ -25,7 +26,8 @@ public class ClimbPistonsBack extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    Pneumatics.getInstance().setClimberSolenoidBack(this.position);
+    bottomPistons.setBack(RobotMap.getLeftLeft(), RobotMap.getLeftMid());
+    bottomPistons.setFront(RobotMap.getRightRight(), RobotMap.getRightMid());
   }
 
   // Make this return true when this Command no longer needs to run execute()
@@ -37,7 +39,8 @@ public class ClimbPistonsBack extends Command {
   // Called once after isFinished returns true
   @Override
   protected void end() {
-    // Pneumatics.getInstance().stop();
+    
+    
   }
 
   // Called when another command which requires one or more of the same

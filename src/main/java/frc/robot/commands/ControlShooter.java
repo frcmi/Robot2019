@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.command.Command;
 
 //Command to move the test motor
 public class ControlShooter extends CommandBase {
+
     public ControlShooter() {
         //Requires defines any subsystem dependencies, so more than one command can't
         //use a subsystem at the same time
@@ -15,13 +16,12 @@ public class ControlShooter extends CommandBase {
     // Called when the command starts running
     @Override
     public void start() {
-        ballShooter.setMotor(0.0);
     }
 
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        ballShooter.setMotor(RobotMap.getRightX());
+        ballShooter.setMotor(RobotMap.getRightHat() == 0, RobotMap.getRightHat() == 180);
     }
 
     // Called just before this Command runs for the first time

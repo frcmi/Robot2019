@@ -11,6 +11,7 @@ import frc.robot.commands.Autonomous1;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.Teleop;
 import frc.robot.commands.ControlLight;
+import frc.robot.commands.ControlPistons;
 import frc.robot.commands.UpdateInfo;
 import frc.robot.commands.ControlPneumatics;
 import frc.robot.commands.ControlShooter;
@@ -94,8 +95,9 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().add(new ForwardCamera());
         Scheduler.getInstance().add(new Teleop());
         Scheduler.getInstance().add(new ControlLight());
-        //Scheduler.getInstance().add(new ControlShooter());
-        //Scheduler.getInstance().add(new ControlPneumatics());
+        Scheduler.getInstance().add(new ControlShooter());
+        Scheduler.getInstance().add(new ControlPistons());
+        Scheduler.getInstance().add(new ControlPneumatics());
     }
     
     // Called periodically during operator control period

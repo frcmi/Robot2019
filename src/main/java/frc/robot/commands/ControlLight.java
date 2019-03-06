@@ -27,11 +27,11 @@ public class ControlLight extends CommandBase {
     private boolean lastButtonState = false;
     @Override
     protected void execute() {
-        if(RobotMap.getMidButton() && !lastButtonState){
+        if(RobotMap.getLeftRight() && !lastButtonState){
             light.toggle();
         }
 
-        lastButtonState = RobotMap.getMidButton();
+        lastButtonState = RobotMap.getLeftRight();
     }
 
     // Called just before this Command runs for the first time

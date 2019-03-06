@@ -24,10 +24,12 @@ public class Pneumatics extends Subsystem {
     }
 
     private DoubleSolenoid mainSol;
+
     
     private Pneumatics() {
         super();
         mainSol = RobotMap.sol;
+
         
     }
     
@@ -42,22 +44,6 @@ public class Pneumatics extends Subsystem {
             mainSol.set(Value.kForward);
         } else if (value2) {
             mainSol.set(Value.kReverse);
-        }
-    }
-
-    public void setClimberSolenoidBack(PistonPosition position) {
-        if(position == PistonPosition.EXTEND) {
-            RobotMap.liftBack.set(Value.kForward);
-        } else {
-            RobotMap.liftBack.set(Value.kReverse);
-        }
-    }
-
-    public void setClimberSolenoidFront(PistonPosition position) {
-        if(position == PistonPosition.EXTEND) {
-            RobotMap.liftFront.set(Value.kForward);
-        } else {
-            RobotMap.liftFront.set(Value.kReverse);
         }
     }
 

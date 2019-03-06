@@ -29,14 +29,7 @@ public class Teleop extends CommandBase {
         driveTrain.updatePID();
         driveTrain.moveLeftDrive(RobotMap.getLeftY());
         driveTrain.moveRightDrive(RobotMap.getRightY());
-        
-        if(RobotMap.rightThrust.getPOV() == 0){
-            ballShooter.setMotor(255);
-        }else if(RobotMap.rightThrust.getPOV() == 180){
-            ballShooter.setMotor(-255);
-        }else{
-            ballShooter.setMotor(0);
-        }
+
         pneumatics.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
     }
 
