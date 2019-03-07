@@ -16,6 +16,21 @@ import com.kauailabs.navx.frc.AHRS;
 
 // All output and input objects (motors, cameras, encoders, etc) are defined here
 public class RobotMap {
+    // *** CONTROLS *** //
+    // Left Drive: Left Joystick
+    // Right Drive: Right Joystick
+    // Front-mounted Pistons: Hold Right Trigger down
+    // Shoot ball: Move Right Joystick Hat up
+    // Grab ball: Move Right Joystick Hat down
+    // Toggle Camera Light: Left Joystick, Right Button
+    // Raise Back Piston: Left Joystick, Left Button
+    // Lower Back Piston: Left Joystick, Center Button
+    // Raise Front Piston: Right Joystick, Right Button
+    // Lower Front Piston: Right Joystick, Center Button
+
+
+
+
     //Joysticks
     public static final int JOYSTICK_LEFT = 0;
     public static final int JOYSTICK_RIGHT = 1;
