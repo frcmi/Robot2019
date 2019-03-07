@@ -32,6 +32,8 @@ public class BallShooter extends Subsystem {
             shooter.set(0.5);
         } else if (valTwo) {
             shooter.set(-0.5);
+        } else {
+            shooter.set(0.0);
         }
     }
 

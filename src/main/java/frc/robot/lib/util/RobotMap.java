@@ -79,8 +79,8 @@ public class RobotMap {
     public static Joystick rightThrust = new Joystick(JOYSTICK_RIGHT);
 
     // Data about the camera to go to the user
-    public static int userCamResX = 1920;
-    public static int userCamResY = 1080;
+    public static int userCamResX = 640;
+    public static int userCamResY = 480;
     // Jetson information
     // public static String jetsonAddress = "http://tegra-ubuntu.local:5800";
     public static String jetsonAddress = "http://10.59.37.54:5800";
