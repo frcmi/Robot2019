@@ -21,7 +21,7 @@ public class ControlPneumatics extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        pneumatics.setSol(RobotMap.getRightTrigger(), RobotMap.getLeftTrigger());
+        pneumatics.setSol(RobotMap.getRightTrigger());
     }
 
     // Called just before this Command runs for the first time

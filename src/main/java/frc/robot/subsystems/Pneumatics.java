@@ -8,10 +8,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 
 public class Pneumatics extends Subsystem {
-    public enum PistonPosition {
-        EXTEND,
-        RETRACT;
-    }
 
     // Subsystems are singleton classes, so there should only be one of each class. Instead
     // of calling the constructor directly, the client should use getInstance to prevent duplication
@@ -39,10 +35,10 @@ public class Pneumatics extends Subsystem {
         setDefaultCommand(null);
     }
 
-    public void setSol(boolean value1, boolean value2) {
-        if (value1) {
+    public void setSol(boolean value) {
+        if (value) {
             mainSol.set(Value.kForward);
-        } else if (value2) {
+        } else{
             mainSol.set(Value.kReverse);
         }
     }
