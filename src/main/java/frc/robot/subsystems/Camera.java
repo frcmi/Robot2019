@@ -71,7 +71,7 @@ public class Camera extends Subsystem {
             } catch(InterruptedException e){}
         } else{
             Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
-            drawOnFrame(source);
+            //drawOnFrame(source);
             outputStream.putFrame(output);
         }
     }

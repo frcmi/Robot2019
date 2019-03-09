@@ -35,9 +35,6 @@ import java.util.*;
  * project.
  */
 public class Robot extends TimedRobot {
-    private SendableChooser<AutonomousCommand> autonomousChooser = new SendableChooser<AutonomousCommand>(); //SendableChooser for choosing autonomous program
-    private Set<AutonomousCommand> autonomousCommands; // The set of all autonomous routines
-    public AutonomousCommand autonomousCommand; // The command to be run in the autonomous
     public RobotInfo info; //Static information about the robot (team and starting position)
     /**
      * This function is run when the robot is first started up and should be
@@ -48,35 +45,17 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().enable();
         System.out.println("Robot initializing");
         info = new RobotInfo();
-        VisionPoller.getInstance();
-        //AUTONOMOUS SETUP:
-        
-        autonomousCommands = new TreeSet<AutonomousCommand>();
+        //VisionPoller.getInstance();
 
-        //Add any autonomous programs to autonomousCommands as shown here:
-        autonomousCommands.add(new Autonomous1());
-
-        //Adds all autonomous commands to the SmartDashboard for the user to choose between
-        Iterator<AutonomousCommand> it = autonomousCommands.iterator();
-        while (it.hasNext()) {
-            AutonomousCommand temp = it.next();
-            autonomousChooser.addOption(temp.name, temp);
-        }
-        SmartDashboard.putData("Auto choices", autonomousChooser);
-        
         SmartDashboard.putData("Commands", Scheduler.getInstance()); //Makes the SmartDashboard display the status of running commands
-        
-        autonomousCommand = new Autonomous1();
         
     }
 
     // Called when autonomous mode starts. Starts the autonomous command
     @Override
     public void autonomousInit() {
-        //System.out.println("Autonomous selected: " + autonomousChooser.getSelected().name);
-        //autonomousCommand = autonomousChooser.getSelected();
+        teleopInit();
         Scheduler.getInstance().removeAll();
-        Scheduler.getInstance().add(autonomousCommand);
     }
 
     // Called periodically during autonomous
