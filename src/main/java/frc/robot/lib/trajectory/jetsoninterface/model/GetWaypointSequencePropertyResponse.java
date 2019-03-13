@@ -1,8 +1,8 @@
 package frc.robot.lib.trajectory.jetsoninterface.model;
 
 import frc.robot.lib.trajectory.WaypointSequence;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class GetWaypointSequencePropertyResponse extends Response {
     public WaypointSequence data;

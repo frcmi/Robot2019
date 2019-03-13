@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.Arrays;
 
 public class VisionPoller extends Thread {
-    public final String defaultServerUrl = RobotMap.jetsonAddress;
+    public static String defaultServerUrl = VisionClient.defaultServerUrl;
 
     private String serverUrl;
     private VisionClient client;
@@ -18,16 +18,22 @@ public class VisionPoller extends Thread {
     private static VisionPoller instance;
 
     public static VisionPoller getInstance(){
-        if (instance == null) instance = new VisionPoller(RobotMap.jetsonAddress);
+        if (instance == null) instance = new VisionPoller(defaultServerUrl);
         return instance;
     }
 
-    private VisionPoller(String serverUrl)
+    public static String normalizeUrl(String serverUrl)
     {
         if (serverUrl == null || serverUrl.length() == 0) {
             serverUrl = defaultServerUrl;
         }
-        this.serverUrl = serverUrl;
+        return serverUrl;
+    }
+
+    private VisionPoller(String serverUrl)
+    {
+        super("VisionPoller@" + normalizeUrl(serverUrl));
+        this.serverUrl = normalizeUrl(serverUrl);
 
         client = new VisionClient(serverUrl);
 
@@ -133,6 +139,7 @@ public class VisionPoller extends Thread {
                 break;
             } catch (Exception e) {
                 synchronized(this) {
+                    e.printStackTrace();
                     latestTargetInfo = null;
                     latestFailureReason = "Unable to sync time with vision server: " + e.getMessage();
                     notifyAll();

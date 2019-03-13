@@ -96,12 +96,8 @@ public class RobotMap {
     // Data about the camera to go to the user
     public static int userCamResX = 640;
     public static int userCamResY = 480;
+
     // Jetson information
-    // public static String jetsonAddress = "http://tegra-ubuntu.local:5800";
-    public static String jetsonAddress = "http://10.59.37.54:5800";
-
-    // public static VisionClient visionClient = new VisionClient(null); //you can put an address in the constructor to use something other than the default
-
     public static double camDistance = 10.0; //The distance between the two cameras in inches
 
     // Joystick button mapping

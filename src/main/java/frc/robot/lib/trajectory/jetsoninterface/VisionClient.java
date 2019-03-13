@@ -19,7 +19,16 @@ import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
 
 public class VisionClient {
-    public static final String defaultServerUrl = RobotMap.jetsonAddress;
+    public static String defaultServerUrl = "http://tegra-ubuntu.local:5800";
+    // public static String defaultServerUrl = "http://10.59.37.54:5800";
+    // public static String defaultServerUrl = "http://ubuntu.local:5800";
+
+    static {
+        String envServerUrl = System.getenv("JETSON_SERVER_URL");
+        if (envServerUrl != null) {
+            defaultServerUrl = envServerUrl;
+        }
+    }
     public static int numSyncSamples = 20;
     public static double nanosPerSecond = 1000000000.0;
 
@@ -39,6 +48,7 @@ public class VisionClient {
         }
         this.serverUrl = serverUrl;
 
+        System.out.println("Initializing VisionClient-->" + serverUrl);
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
         cm.setMaxTotal(200); // Increase max total connection to 200

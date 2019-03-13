@@ -1,9 +1,9 @@
 package frc.robot.lib.trajectory;
 
 import frc.robot.lib.util.SnailMath;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import frc.robot.lib.trajectory.jetsoninterface.model.ErrorInfo;
 
 //A WaypointSequence is a sequence of Waypoints.  #whatdidyouexpect

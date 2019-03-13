@@ -45,7 +45,7 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().enable();
         System.out.println("Robot initializing");
         info = new RobotInfo();
-        //VisionPoller.getInstance();
+        VisionPoller.getInstance();
 
         SmartDashboard.putData("Commands", Scheduler.getInstance()); //Makes the SmartDashboard display the status of running commands
         
