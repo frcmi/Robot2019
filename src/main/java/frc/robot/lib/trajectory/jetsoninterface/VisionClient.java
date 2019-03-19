@@ -25,9 +25,8 @@ public class VisionClient {
 
     static {
         String envServerUrl = System.getenv("JETSON_SERVER_URL");
-        if (envServerUrl != null) {
+        if (envServerUrl != null)
             defaultServerUrl = envServerUrl;
-        }
     }
     public static int numSyncSamples = 20;
     public static double nanosPerSecond = 1000000000.0;
@@ -37,7 +36,10 @@ public class VisionClient {
     private ResteasyClient ezClient;
     private ResteasyWebTarget ezTarget;
     private ServicesInterface proxy;
-    /* The number of nanoseconds that the server's monotonic clock is ahead of our System.nanoTime() */
+    /*
+     * The number of nanoseconds that the server's monotonic clock is ahead of our
+     * System.nanoTime()
+     */
     private long serverShiftNano = 0;
     private boolean haveServerShift = false;
     private long averageSyncLatencyNano = 0;
@@ -60,8 +62,7 @@ public class VisionClient {
         proxy = ezTarget.proxy(ServicesInterface.class);
     }
 
-    public double getServerUnadjustedMonotonicSecs()
-    {
+    public double getServerUnadjustedMonotonicSecs() {
         TimeResponse resp = proxy.time();
         if (!resp.success) {
             throw new VisionException(resp.error);
@@ -77,25 +78,22 @@ public class VisionClient {
         return System.nanoTime() / nanosPerSecond;
     }
 
-    public long serverToLocalTime(double monoSecs)
-    {
+    public long serverToLocalTime(double monoSecs) {
         if (!haveServerShift) {
             throw new RuntimeException("Request for server local time prior to synchronization");
         }
-        return (long)(monoSecs * nanosPerSecond) - serverShiftNano;
+        return (long) (monoSecs * nanosPerSecond) - serverShiftNano;
     }
 
-    long serverToLocalTimeSync(double monoSecs)
-    {
+    long serverToLocalTimeSync(double monoSecs) {
         long serverShift = getServerShift();
-        return (long)(monoSecs * nanosPerSecond) - serverShift;
+        return (long) (monoSecs * nanosPerSecond) - serverShift;
     }
 
-    public long getServerShift()
-    {
+    public long getServerShift() {
         if (serverShiftNano == 0 || !haveServerShift) {
-            synchronized(reqMutex) {
-                if(!haveServerShift) {
+            synchronized (reqMutex) {
+                if (!haveServerShift) {
                     long totalLatency = 0;
                     long totalShiftNano = 0;
                     for (int i = 0; i < numSyncSamples; i++) {
@@ -104,7 +102,7 @@ public class VisionClient {
                         double serverMono = getServerUnadjustedMonotonicSecs();
                         long localNanoPost = System.nanoTime();
                         /* END TIME CRITICAL */
-                        long serverNano = (long)(serverMono * nanosPerSecond);
+                        long serverNano = (long) (serverMono * nanosPerSecond);
                         long latencyNano = localNanoPost - localNanoPre;
                         totalLatency += latencyNano;
                         /* Estimate local time to be halfway between request and response */
@@ -139,7 +137,6 @@ public class VisionClient {
         return new TargetInfo(resp.data, serverToLocalTime(resp.data.ts_post_mono));
     }
 
-
     public void setProperty(String name, Object value) {
         SimpleResponse resp = proxy.setProperty(name, value);
         if (!resp.success) {
@@ -156,7 +153,7 @@ public class VisionClient {
     }
 
     public void setStringProperty(String name, String value) {
-        SimpleResponse resp = proxy.setProperty(name, (Object)value);
+        SimpleResponse resp = proxy.setProperty(name, (Object) value);
         if (!resp.success) {
             throw new VisionException(resp.error);
         }
@@ -167,7 +164,7 @@ public class VisionClient {
         if (!resp.success) {
             throw new VisionException(resp.error);
         }
-        return (String)resp.data;
+        return (String) resp.data;
     }
 
     public void setWaypointSequenceProperty(String name, WaypointSequence value) {

@@ -12,10 +12,10 @@ import frc.robot.subsystems.Light;
 public class Teleop extends CommandBase {
 
     public Teleop() {
-        //Requires defines any subsystem dependencies, so more than one command can't
-        //use a subsystem at the same time
+        // Requires defines any subsystem dependencies, so more than one command can't
+        // use a subsystem at the same time
         requires(driveTrain);
-    }	
+    }
 
     // Called when the command starts running
     @Override
@@ -34,12 +34,9 @@ public class Teleop extends CommandBase {
     // Called just before this Command runs for the first time
     @Override
 
-
-
     protected void initialize() {
         System.out.println("Starting teleop");
     }
-
 
     // Make this return true when this Command no longer needs to run execute()
     @Override
@@ -59,7 +56,7 @@ public class Teleop extends CommandBase {
     protected void interrupted() {
         end();
     }
-    
+
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {

@@ -35,10 +35,11 @@ import java.util.*;
  * project.
  */
 public class Robot extends TimedRobot {
-    public RobotInfo info; //Static information about the robot (team and starting position)
+    public RobotInfo info; // Static information about the robot (team and starting position)
+
     /**
-     * This function is run when the robot is first started up and should be
-     * used for any initialization code.
+     * This function is run when the robot is first started up and should be used
+     * for any initialization code.
      */
     @Override
     public void robotInit() {
@@ -47,8 +48,9 @@ public class Robot extends TimedRobot {
         info = new RobotInfo();
         VisionPoller.getInstance();
 
-        SmartDashboard.putData("Commands", Scheduler.getInstance()); //Makes the SmartDashboard display the status of running commands
-        
+        SmartDashboard.putData("Commands", Scheduler.getInstance()); // Makes the SmartDashboard display the status of
+                                                                     // running commands
+
     }
 
     // Called when autonomous mode starts. Starts the autonomous command
@@ -62,9 +64,8 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousPeriodic() {
         Scheduler.getInstance().run();
-        //TODO send status to the SmartDashboard
+        // TODO: send status to the SmartDashboard
     }
-
 
     // Called when the robot is put into operator control mode
     @Override
@@ -78,35 +79,33 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().add(new ControlPistons());
         Scheduler.getInstance().add(new ControlPneumatics());
     }
-    
+
     // Called periodically during operator control period
     @Override
     public void teleopPeriodic() {
         Scheduler.getInstance().run();
     }
 
-    
-    //Called when the robot is put into test mode
+    // Called when the robot is put into test mode
     @Override
     public void testInit() {
         Scheduler.getInstance().removeAll();
     }
-    
-    //Called periodically during test mode
+
+    // Called periodically during test mode
     @Override
     public void testPeriodic() {
         Scheduler.getInstance().run();
     }
 
-
-    //Called when robot is put into disabled mode
+    // Called when robot is put into disabled mode
     @Override
     public void disabledInit() {
         Scheduler.getInstance().removeAll();
         Scheduler.getInstance().add(new UpdateInfo());
     }
-    
-    //Called periodically when the robot is in disabled mode
+
+    // Called periodically when the robot is in disabled mode
     @Override
     public void disabledPeriodic() {
         Scheduler.getInstance().run();

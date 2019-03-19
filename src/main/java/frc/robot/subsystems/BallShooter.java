@@ -6,13 +6,14 @@ import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
 
 public class BallShooter extends Subsystem {
-    
+
     public static BallShooter instance;
 
     public Victor shooter;
 
     public static BallShooter getInstance() {
-        if (instance == null) instance = new BallShooter();
+        if (instance == null)
+            instance = new BallShooter();
         return instance;
     }
 
@@ -21,7 +22,7 @@ public class BallShooter extends Subsystem {
         shooter = RobotMap.ballShooter;
     }
 
-    //Sets default command for the system
+    // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
         setDefaultCommand(null);
@@ -41,6 +42,4 @@ public class BallShooter extends Subsystem {
         shooter.set(0.0);
     }
 
-
 }
-

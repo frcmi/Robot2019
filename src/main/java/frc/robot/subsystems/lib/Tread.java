@@ -10,51 +10,58 @@ public class Tread implements SpeedController {
     private List<Victor> motors;
     private boolean isInverted = false;
     private double power;
-    public Tread(Victor... motorsArguments){
+
+    public Tread(Victor... motorsArguments) {
         this.isInverted = false;
         this.motors = new ArrayList<Victor>();
-        for (int i = 0; i < motorsArguments.length; i++){
+        for (int i = 0; i < motorsArguments.length; i++) {
             this.motors.add(motorsArguments[i]);
         }
         this.power = 0.0;
     }
-    //Returns current power of motors
+
+    // Returns current power of motors
     @Override
-    public double get(){
+    public double get() {
         return power;
     }
 
-    //Returns whether this tread is inverted
+    // Returns whether this tread is inverted
     @Override
-    public boolean getInverted(){
+    public boolean getInverted() {
         return isInverted;
     }
-    //Sets the power to the motors
+
+    // Sets the power to the motors
     @Override
-    public void set(double power){
+    public void set(double power) {
         this.power = power;
         for (Victor motor : this.motors) {
             motor.set(power);
         }
     }
-    //Sets whether the motors are inverted
+
+    // Sets whether the motors are inverted
     @Override
-    public void setInverted(boolean isInverted){
+    public void setInverted(boolean isInverted) {
         this.isInverted = isInverted;
     }
-    //Stops the tread
+
+    // Stops the tread
     @Override
-    public void stopMotor(){
+    public void stopMotor() {
         this.set(0.0);
     }
-    //Disables this tread
+
+    // Disables this tread
     @Override
-    public void disable(){
-        for (Victor motor : this.motors){
+    public void disable() {
+        for (Victor motor : this.motors) {
             motor.set(0.0);
         }
     }
+
     @Override
-    public void pidWrite(double output){
+    public void pidWrite(double output) {
     }
 }

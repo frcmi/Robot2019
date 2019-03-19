@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Waypoint {
     @JsonCreator
-    public Waypoint(
-            @JsonProperty("x") double x,
-            @JsonProperty("y") double y,
-            @JsonProperty("theta") double theta) {
+    public Waypoint(@JsonProperty("x") double x, @JsonProperty("y") double y, @JsonProperty("theta") double theta) {
         this.x = x;
         this.y = y;
         this.theta = theta;

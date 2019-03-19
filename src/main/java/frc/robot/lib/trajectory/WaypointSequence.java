@@ -13,18 +13,15 @@ public class WaypointSequence {
     Waypoint[] waypoints_;
     int num_waypoints_ = 0;
 
-    public WaypointSequence(int max_size)
-    {
+    public WaypointSequence(int max_size) {
         waypoints_ = new Waypoint[max_size];
     }
 
-    public WaypointSequence()
-    {
+    public WaypointSequence() {
         this(8);
     }
 
-    public WaypointSequence(Waypoint[] waypoints)
-    {
+    public WaypointSequence(Waypoint[] waypoints) {
         if (waypoints == null) {
             waypoints_ = new Waypoint[0];
         } else {
@@ -34,13 +31,11 @@ public class WaypointSequence {
     }
 
     @JsonCreator
-    public static WaypointSequence fromList(Waypoint[] waypoints)
-    {
+    public static WaypointSequence fromList(Waypoint[] waypoints) {
         return new WaypointSequence(waypoints);
     }
 
-    public int addWaypoint(Waypoint w)
-    {
+    public int addWaypoint(Waypoint w) {
         if (num_waypoints_ >= waypoints_.length) {
             int newLength = 2 * num_waypoints_;
             if (newLength < defaultInitialAllocSize) {
@@ -57,18 +52,15 @@ public class WaypointSequence {
         return result;
     }
 
-    public int addWaypoint(double x, double y, double theta)
-    {
+    public int addWaypoint(double x, double y, double theta) {
         return addWaypoint(new Waypoint(x, y, theta));
     }
 
-    public int getNumWaypoints()
-    {
+    public int getNumWaypoints() {
         return num_waypoints_;
     }
 
-    public Waypoint getWaypoint(int index)
-    {
+    public Waypoint getWaypoint(int index) {
         if (index >= 0 && index < getNumWaypoints()) {
             return waypoints_[index];
         } else {
@@ -76,8 +68,7 @@ public class WaypointSequence {
         }
     }
 
-    public WaypointSequence invertY()
-    {
+    public WaypointSequence invertY() {
         WaypointSequence inverted = new WaypointSequence(waypoints_.length);
         inverted.num_waypoints_ = num_waypoints_;
         for (int i = 0; i < num_waypoints_; ++i) {
@@ -91,8 +82,7 @@ public class WaypointSequence {
     }
 
     @JsonValue
-    public Waypoint[] toList()
-    {
+    public Waypoint[] toList() {
         Waypoint[] result;
         if (waypoints_.length == num_waypoints_) {
             result = waypoints_;

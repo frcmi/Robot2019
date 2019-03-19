@@ -13,23 +13,22 @@ public class QueryJetsonTest {
         if (args.length > 0) {
             url = args[0];
         }
-        
+
         long nano1sec = 1000000000L;
 
         VisionPoller vp = VisionPoller.getInstance();
 
         try {
             TimeUnit.MILLISECONDS.sleep(2000);
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
         }
 
         VisionClient vc = vp.getClient();
 
-
         WaypointSequence ws1 = new WaypointSequence();
-        ws1.addWaypoint(5.0, 6.0, PI/4.0);
+        ws1.addWaypoint(5.0, 6.0, PI / 4.0);
         ws1.addWaypoint(10.0, 8.0, 0.0);
-        ws1.addWaypoint(15.0, 6.0, -PI/4.0);
+        ws1.addWaypoint(15.0, 6.0, -PI / 4.0);
         ws1.addWaypoint(20.0, 0.0, 0.0);
 
         System.out.println("setting testWaypointSequence");
@@ -41,7 +40,6 @@ public class QueryJetsonTest {
 
         System.out.println("setting testWaypointSequence2");
         vc.setWaypointSequenceProperty("testWaypointSequence2", ws2);
-
 
         long startTime = System.nanoTime();
         long endTime = startTime + nano1sec * 10;
@@ -62,12 +60,12 @@ public class QueryJetsonTest {
             }
             try {
                 TimeUnit.MILLISECONDS.sleep(50);
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
             }
 
         }
 
-        System.out.printf("Closing Vision poller at %d\n", System.nanoTime() );
+        System.out.printf("Closing Vision poller at %d\n", System.nanoTime());
 
         vp.close();
 

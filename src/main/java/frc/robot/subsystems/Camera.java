@@ -20,24 +20,26 @@ import org.apache.commons.io.FileUtils;
 
 public class Camera extends Subsystem {
 
-    // Subsystems are singleton classes, so there should only be one of each class. Instead
-    // of calling the constructor directly, the client should use getInstance to prevent duplication
+    // Subsystems are singleton classes, so there should only be one of each class.
+    // Instead
+    // of calling the constructor directly, the client should use getInstance to
+    // prevent duplication
     // of Subsystem objects.
     private static Camera instance;
-    
 
     public static Camera getInstance() {
-        if (instance==null) instance = new Camera();
+        if (instance == null)
+            instance = new Camera();
         return instance;
     }
-    
+
     private int screenWidth;
     private int screenHeight;
     private UsbCamera camera;
-    
+
     private CvSink cvSink;
     private CvSource outputStream;
-    
+
     private Mat source;
     private Mat output;
 
@@ -53,25 +55,26 @@ public class Camera extends Subsystem {
         source = new Mat();
         output = new Mat();
     }
-    
-    //Sets default command for the system
+
+    // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
         setDefaultCommand(null);
     }
-    
-    //Called every tick by a thread when the ForwardCamera command is running
-    public void forwardFrame(){
+
+    // Called every tick by a thread when the ForwardCamera command is running
+    public void forwardFrame() {
         long frameTime = cvSink.grabFrame(source);
-        if(frameTime == 0){
+        if (frameTime == 0) {
             System.out.println("cvSink.grabFrame() failed:");
             System.out.println(cvSink.getError());
-            try{
+            try {
                 Thread.sleep(50);
-            } catch(InterruptedException e){}
-        } else{
+            } catch (InterruptedException e) {
+            }
+        } else {
             Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
-            //drawOnFrame(source);
+            // drawOnFrame(source);
             outputStream.putFrame(output);
         }
     }
@@ -82,35 +85,36 @@ public class Camera extends Subsystem {
     MatOfDouble mtx;
     MatOfDouble dist;
 
-    public void drawOnFrame(Mat src){
+    public void drawOnFrame(Mat src) {
         srcPointer = src;
         TargetInfo info = VisionPoller.getInstance().getLatestTargetInfoHandleErrors();
-        if(info != null){
+        if (info != null) {
             rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
             tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
             mtx = new MatOfDouble(3, 3);
-            for(int row=0;row<3;row++){
-                for(int col=0;col<3;col++)
-                     mtx.put(row, col, info.calib.mtx[row][col]);
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++)
+                    mtx.put(row, col, info.calib.mtx[row][col]);
             }
-    
+
             MatOfDouble dist = new MatOfDouble(3, 3);
-            for(int row=0;row<3;row++){
-                for(int col=0;col<3;col++)
-                     dist.put(row, col, info.calib.dist[row][col]);
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++)
+                    dist.put(row, col, info.calib.dist[row][col]);
             }
-    
+
             drawAxis();
         }
     }
 
-    //Draw the axis for debugging
-    public void drawAxis(){
+    // Draw the axis for debugging
+    public void drawAxis() {
         double camDist = RobotMap.camDistance;
         double reticleDist = 10.0;
         double error = camDist - reticleDist;
 
-        Point3[] originPts = {new Point3(0, error, 0), new Point3(3, error, 0), new Point3(0, error+3, 0), new Point3(0, error, 3)};
+        Point3[] originPts = { new Point3(0, error, 0), new Point3(3, error, 0), new Point3(0, error + 3, 0),
+                new Point3(0, error, 3) };
         MatOfPoint2f pixels = null;
 
         drawLine3D(originPts[0], originPts[1], new Scalar(255, 0, 0));
@@ -119,10 +123,10 @@ public class Camera extends Subsystem {
 
     }
 
-    //Draws a line from two given 3d coordinates
-    public void drawLine3D(Point3 point1, Point3 point2, Scalar color){
+    // Draws a line from two given 3d coordinates
+    public void drawLine3D(Point3 point1, Point3 point2, Scalar color) {
         MatOfPoint2f pixels = null;
-        Calib3d.projectPoints(new MatOfPoint3f(point1, point2), (Mat)rvec, (Mat)tvec, (Mat)mtx, dist, pixels);
+        Calib3d.projectPoints(new MatOfPoint3f(point1, point2), (Mat) rvec, (Mat) tvec, (Mat) mtx, dist, pixels);
         Imgproc.line(srcPointer, pixels.toArray()[0], pixels.toArray()[1], color);
     }
 }

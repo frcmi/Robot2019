@@ -6,30 +6,30 @@ import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
-
 public class Pneumatics extends Subsystem {
 
-    // Subsystems are singleton classes, so there should only be one of each class. Instead
-    // of calling the constructor directly, the client should use getInstance to prevent duplication
+    // Subsystems are singleton classes, so there should only be one of each class.
+    // Instead
+    // of calling the constructor directly, the client should use getInstance to
+    // prevent duplication
     // of Subsystem objects.
     private static Pneumatics instance;
 
     public static Pneumatics getInstance() {
-        if (instance==null) instance = new Pneumatics();
+        if (instance == null)
+            instance = new Pneumatics();
         return instance;
     }
 
     private DoubleSolenoid mainSol;
 
-    
     private Pneumatics() {
         super();
         mainSol = RobotMap.sol;
 
-        
     }
-    
-    //Sets default command for the system
+
+    // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
         setDefaultCommand(null);
@@ -38,7 +38,7 @@ public class Pneumatics extends Subsystem {
     public void setSol(boolean value) {
         if (value) {
             mainSol.set(Value.kForward);
-        } else{
+        } else {
             mainSol.set(Value.kReverse);
         }
     }

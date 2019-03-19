@@ -4,10 +4,8 @@ import frc.robot.lib.util.PIDInfo;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 
-
 //Abstract class for a drive train. Drive train classes should extend this.
 public abstract class Manipulator extends Subsystem {
-
 
     public Manipulator() {
     }

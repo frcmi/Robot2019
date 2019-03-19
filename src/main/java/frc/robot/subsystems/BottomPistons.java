@@ -16,7 +16,7 @@ public class BottomPistons extends Subsystem {
     private static BottomPistons instance;
 
     public static BottomPistons getInstance() {
-        if (instance==null) instance = new BottomPistons();
+        if (instance == null) instance = new BottomPistons();
         return instance;
     }
 

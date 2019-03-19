@@ -33,7 +33,6 @@ public class ForwardCamera extends CommandBase {
 
     }
 
-
     // Make this return true when this Command no longer needs to run execute()
     @Override
     protected boolean isFinished() {
@@ -54,14 +53,14 @@ public class ForwardCamera extends CommandBase {
     protected void interrupted() {
         end();
     }
-    
+
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {
         end();
     }
 
-    public void stop(){
+    public void stop() {
         end();
     }
 }

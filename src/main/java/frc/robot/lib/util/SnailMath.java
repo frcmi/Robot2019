@@ -9,6 +9,7 @@ import java.util.*;
 public class SnailMath {
     // constants
 
+    // XXX: 
     public static final double inchesToMeters = 39.3701;
     static final double sq2p1 = 2.414213562373095048802e0;
     static final double sq2m1 = .414213562373095048802e0;

@@ -1,7 +1,6 @@
 package frc.robot.lib.trajectory.jetsoninterface;
 
-public final class TargetResult
-{
+public final class TargetResult {
     public boolean success;
     public String failureReason;
     public TargetInfo info;
@@ -12,11 +11,9 @@ public final class TargetResult
         this.info = info;
     }
 
-    TargetResult(String failureReason)
-    {
+    TargetResult(String failureReason) {
         success = false;
         this.failureReason = failureReason;
         info = null;
     }
 }
-

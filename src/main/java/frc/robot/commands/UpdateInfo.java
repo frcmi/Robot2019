@@ -6,8 +6,8 @@ import frc.robot.lib.util.PIDInfo;
 //Command to move the test motor
 public class UpdateInfo extends Command {
     public UpdateInfo() {
-        //No dependencies, this doesn't use any motors
-    }	
+        // No dependencies, this doesn't use any motors
+    }
 
     // Called when the command starts running
     @Override
@@ -27,7 +27,6 @@ public class UpdateInfo extends Command {
 
     }
 
-
     // Make this return true when this Command no longer needs to run execute()
     @Override
     protected boolean isFinished() {
@@ -46,7 +45,7 @@ public class UpdateInfo extends Command {
     protected void interrupted() {
         end();
     }
-    
+
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {

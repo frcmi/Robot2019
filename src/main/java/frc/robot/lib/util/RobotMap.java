@@ -86,7 +86,8 @@ public class RobotMap {
     public static Solenoid ledRing = new Solenoid(PCM_LEDRING);
 
     // Data about the robot
-    public static double distBetweenWheels = 1.0; // in meters TODO: measure this
+    // TODO: measure the distance between wheels
+    public static double distBetweenWheels = 1.0; // in meters
     public static double commandUpdateInterval = 0.02; // in seconds
 
     // Thrustmaster T1600M (x2)

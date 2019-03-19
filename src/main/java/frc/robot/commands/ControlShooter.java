@@ -8,10 +8,10 @@ import edu.wpi.first.wpilibj.command.Command;
 public class ControlShooter extends CommandBase {
 
     public ControlShooter() {
-        //Requires defines any subsystem dependencies, so more than one command can't
-        //use a subsystem at the same time
+        // Requires defines any subsystem dependencies, so more than one command can't
+        // use a subsystem at the same time
         requires(ballShooter);
-    }	
+    }
 
     // Called when the command starts running
     @Override
@@ -27,9 +27,8 @@ public class ControlShooter extends CommandBase {
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-       
-    }
 
+    }
 
     // Make this return true when this Command no longer needs to run execute()
     @Override
@@ -49,7 +48,7 @@ public class ControlShooter extends CommandBase {
     protected void interrupted() {
         end();
     }
-    
+
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {

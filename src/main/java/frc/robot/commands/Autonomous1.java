@@ -4,7 +4,6 @@ import frc.robot.Robot;
 
 import edu.wpi.first.wpilibj.command.Command;
 
-
 //Example of how to program an autonomous command
 public class Autonomous1 extends AutonomousCommand {
 
@@ -13,8 +12,8 @@ public class Autonomous1 extends AutonomousCommand {
     public Autonomous1() {
         name = "Autonomous1";
 
-        //Requires defines any subsystem dependencies, so more than one command can't
-        //use a subsystem at the same time
+        // Requires defines any subsystem dependencies, so more than one command can't
+        // use a subsystem at the same time
         requires(driveTrain);
     }
 
@@ -24,7 +23,7 @@ public class Autonomous1 extends AutonomousCommand {
         super.start();
     }
 
-    //Called periodically while the command is running
+    // Called periodically while the command is running
     @Override
     protected void execute() {
         driveTrain.updatePID();
@@ -33,9 +32,8 @@ public class Autonomous1 extends AutonomousCommand {
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-        
-    }
 
+    }
 
     // Make this return true when this Command no longer needs to run execute()
     @Override
@@ -46,7 +44,7 @@ public class Autonomous1 extends AutonomousCommand {
     // Called when after isFinished returns true
     @Override
     protected void end() {
-        
+
     }
 
     // Called when another command which requires one or more of the same
@@ -55,7 +53,7 @@ public class Autonomous1 extends AutonomousCommand {
     protected void interrupted() {
         end();
     }
-    
+
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {

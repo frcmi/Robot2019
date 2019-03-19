@@ -11,7 +11,7 @@ public class Light extends Subsystem {
     private static Light instance;
 
     public static Light getInstance() {
-        if (instance==null) instance = new Light();
+        if (instance == null) instance = new Light();
         return instance;
     }
 
@@ -25,14 +25,10 @@ public class Light extends Subsystem {
 
     public void set(int state) {
         assert state == 1 || state == 0;
-        if (state == 1) {
-            lightRing.set(true);
-        } else{
-            lightRing.set(false);
-        }
+        lightRing.set(true ? state == 1 : false);
     }
 
-    public void toggle(){
+    public void toggle() {
         lightRing.set(!lightRing.get());
     }
 }

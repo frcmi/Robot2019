@@ -1,7 +1,6 @@
 package frc.robot.lib.trajectory.jetsoninterface;
 
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
-
 import frc.robot.lib.trajectory.jetsoninterface.model.TargetInfoResponseData;
 
 public class TargetInfo {
@@ -13,8 +12,7 @@ public class TargetInfo {
     public double y;
     public double rx;
 
-    public TargetInfo(TargetInfoResponseData data, long nanoTime)
-    {
+    public TargetInfo(TargetInfoResponseData data, long nanoTime) {
         this.nanoTime = nanoTime;
         for (int i = 0; i < 3; i++) {
             tvec[i] = data.tvec[i][0];

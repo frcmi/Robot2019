@@ -17,18 +17,20 @@ import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.SPI;
 
-
 //Logs encoder, compass, gyroscope, and accelerometer movements. Handled by the DriveTrain
 public class PIDInfo {
-   
+
     private static PIDInfo instance;
+
     public static PIDInfo getInstance() {
-        if (instance==null) instance = new PIDInfo();
+        if (instance == null)
+            instance = new PIDInfo();
         return instance;
     }
+
     public LinkedList<java.lang.Float> leftEncoderVals;
     public LinkedList<java.lang.Float> rightEncoderVals;
-    
+
     public LinkedList<java.lang.Float> groundAngleVals; // Maybe change to getAngle (from getYaw)
 
     public LinkedList<java.lang.Float> compassVals;
@@ -40,14 +42,14 @@ public class PIDInfo {
     public double dist;
     public byte bitRate;
 
-    private static final int NUM_STORED_VALUES = 500; //how much history is stored by this class
+    private static final int NUM_STORED_VALUES = 500; // how much history is stored by this class
 
     public PIDInfo() {
         dist = 4.0; // Calculated distance per encoder pulse
         RobotMap.leftEncoder.setDistancePerPulse(dist);
         RobotMap.leftEncoder.setDistancePerPulse(dist);
 
-        //all of these are stored so index zero is the most recent
+        // all of these are stored so index zero is the most recent
         leftEncoderVals = new LinkedList<java.lang.Float>();
         rightEncoderVals = new LinkedList<java.lang.Float>();
 
@@ -57,7 +59,7 @@ public class PIDInfo {
         groundAngleDerivs = new LinkedList<java.lang.Float>();
     }
 
-    //Updates the state of everything. Should be called by
+    // Updates the state of everything. Should be called by
     public void update() {
         leftEncoderVals.addFirst(Float.valueOf((float) RobotMap.leftEncoder.getDistance()));
         // trimList(leftEncoderVals);
@@ -73,21 +75,21 @@ public class PIDInfo {
         groundAngleDerivs.addFirst(Float.valueOf((float) RobotMap.navx.getRate()));
         // trimList(groundAngleDerivs);
     }
-/*  NOTE: java doesn't like it when you use sublists of linkedlists, threw exception at runtime
-    public void trimList(LinkedList<Float> list){
-        if (list.size() > NUM_STORED_VALUES){
-            list = (LinkedList<java.lang.Float>) list.subList(0, NUM_STORED_VALUES-1);
-        }
-    }
-    */
+    /*
+     * NOTE: java doesn't like it when you use sublists of linkedlists, threw
+     * exception at runtime public void trimList(LinkedList<Float> list){ if
+     * (list.size() > NUM_STORED_VALUES){ list = (LinkedList<java.lang.Float>)
+     * list.subList(0, NUM_STORED_VALUES-1); } }
+     */
 
-    //TODO: make these functions more sophisticated using the encoders as well as the navx for calibration
+    // TODO: make these functions more sophisticated using the encoders as well as
+    // the navx for calibration
 
-    public float getLeftEncoderDelta(){
+    public float getLeftEncoderDelta() {
         return leftEncoderVals.get(0) - leftEncoderVals.get(1);
     }
 
-    public float getRightEncoderDelta(){
+    public float getRightEncoderDelta() {
         return rightEncoderVals.get(0) - rightEncoderVals.get(1);
     }
 

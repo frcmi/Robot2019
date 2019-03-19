@@ -52,8 +52,7 @@ public class Spline {
         return Math.abs(x - y) < 1E-6;
     }
 
-    public static boolean reticulateSplines(Waypoint start, Waypoint goal,
-            Spline result, Type type) {
+    public static boolean reticulateSplines(Waypoint start, Waypoint goal, Spline result, Type type) {
         return reticulateSplines(start.x, start.y, start.theta, goal.x, goal.y, goal.theta, result, type);
     }
 
@@ -66,9 +65,8 @@ public class Spline {
         result.x_offset_ = x0;
         result.y_offset_ = y0;
         double x1_hat = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
-        if (x1_hat == 0) {
+        if (x1_hat == 0)
             return false;
-        }
         result.knot_distance_ = x1_hat;
         result.theta_offset_ = Math.atan2(y1 - y0, x1 - x0);
         double theta0_hat = SnailMath.getDifferenceInAngleRadians(result.theta_offset_, theta0);
@@ -212,7 +210,7 @@ public class Spline {
     }
 
     public String toString() {
-        return "a=" + a_ + "; b=" + b_ + "; c=" + c_ + "; d=" + d_ + "; e=" + e_;
+        return String.format("a=%f; b=%f; c=%f; d=%f; e=%f", a_, b_, c_, d_, e_);
     }
 
 }

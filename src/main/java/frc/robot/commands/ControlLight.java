@@ -12,10 +12,10 @@ import frc.robot.subsystems.Light;
 public class ControlLight extends CommandBase {
 
     public ControlLight() {
-        //Requires defines any subsystem dependencies, so more than one command can't
-        //use a subsystem at the same time
+        // Requires defines any subsystem dependencies, so more than one command can't
+        // use a subsystem at the same time
         requires(light);
-    }	
+    }
 
     // Called when the command starts running
     @Override
@@ -25,9 +25,10 @@ public class ControlLight extends CommandBase {
 
     // Called periodically while the command is running
     private boolean lastButtonState = false;
+
     @Override
     protected void execute() {
-        if(RobotMap.getLeftRight() && !lastButtonState){
+        if (RobotMap.getLeftRight() && !lastButtonState) {
             light.toggle();
         }
 
@@ -38,7 +39,6 @@ public class ControlLight extends CommandBase {
     @Override
     protected void initialize() {
     }
-
 
     // Make this return true when this Command no longer needs to run execute()
     @Override
@@ -58,7 +58,7 @@ public class ControlLight extends CommandBase {
     protected void interrupted() {
         end();
     }
-    
+
     // Called when the command is manually cancelled from the SmartDashboard
     @Override
     public void cancel() {
