@@ -16,6 +16,11 @@ public class VisionPoller extends Thread {
     private boolean shutdownNow = false;
     private long pollCount = 0;
 
+    String[] allowedErrors = {"Unable to find 2 target contours", 
+            "Could not find 2 targets", 
+            "Hull does not have 6 vertices", 
+            "Unable to determine target pose using solvepnp"};
+
     private static VisionPoller instance;
 
     public static VisionPoller getInstance() {
@@ -70,11 +75,6 @@ public class VisionPoller extends Thread {
         if (latest.success == true) {
             return latest.info;
         } else {
-            String[] allowedErrors = { "Unable to find 2 target contours", "Could not find 2 targets",
-                    "Hull does not have 6 vertices", "Unable to determine target pose using solvepnp" };
-            if (!Arrays.asList(allowedErrors).contains(latest.failureReason)) {
-                System.out.println("Error getting TargetInfo:" + latest.failureReason);
-            }
             return null;
         }
     }
@@ -137,7 +137,7 @@ public class VisionPoller extends Thread {
                     notifyAll();
                 }
 
-                System.out.println("VisionPoller: " + latestFailureReason);
+                printError(latestFailureReason);
                 if (!shutdownNow) {
                     try {
                         TimeUnit.SECONDS.sleep(5);
@@ -164,7 +164,7 @@ public class VisionPoller extends Thread {
                     notifyAll();
                 }
 
-                System.out.println("VisionPoller: " + latestFailureReason);
+                printError(latestFailureReason);
             } catch (Exception e) {
                 synchronized (this) {
                     latestTargetInfo = null;
@@ -172,7 +172,7 @@ public class VisionPoller extends Thread {
                     notifyAll();
                 }
 
-                System.out.println("VisionPoller: " + latestFailureReason);
+                printError(latestFailureReason);
                 if (!shutdownNow) {
                     try {
                         TimeUnit.MILLISECONDS.sleep(50);
@@ -191,8 +191,25 @@ public class VisionPoller extends Thread {
         }
     }
 
+<<<<<<< HEAD
     // Returns the relative postion from robot to the vision target
     public Delta getRelativePosition() {
+=======
+    private void printError(String errorMessage){
+        boolean allowed = false;
+        for (int i=0; i<allowedErrors.length; i++){
+            if (errorMessage.contains(allowedErrors[i])){
+                allowed = true;
+            }
+        }
+        if (!allowed){
+            System.out.println("VisionPoller: " + errorMessage);
+        }
+    }
+
+    //Returns the relative postion from robot to the vision target
+    public Delta getRelativePosition(){
+>>>>>>> 13705d8dc8d102a8f17e731d3093b35772f73e10
         TargetInfo info = getLatestTargetInfoHandleErrors();
         if (info == null) {
             return null;
@@ -216,6 +233,13 @@ public class VisionPoller extends Thread {
             this.y = y;
             this.theta = theta;
             this.timeStamp = timeStamp;
+        }
+        public void print(){
+            System.out.println("Delta object:");
+            System.out.println("    x=" + x);
+            System.out.println("    y=" + y);
+            System.out.println("    theta=" + theta);
+            System.out.println("    timeStamp=" + timeStamp);
         }
     }
 }
