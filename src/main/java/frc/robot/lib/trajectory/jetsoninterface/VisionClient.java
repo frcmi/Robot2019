@@ -19,7 +19,7 @@ import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
 
 public class VisionClient {
-    public static String defaultServerUrl = "http://tegra-ubuntu.local:5800";
+    public static String defaultServerUrl = "http://10.59.37.54:5800";
     // public static String defaultServerUrl = "http://10.59.37.54:5800";
     // public static String defaultServerUrl = "http://ubuntu.local:5800";
 
