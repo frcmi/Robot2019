@@ -93,9 +93,6 @@ public class Camera extends Subsystem {
     public void drawOnFrame(Mat src) {
         srcPointer = src;
         TargetInfo info = VisionPoller.getInstance().getLatestTargetInfoHandleErrors();
-<<<<<<< HEAD
-        if (info != null) {
-=======
         if (info == null){
             return;
         }
@@ -109,7 +106,6 @@ public class Camera extends Subsystem {
         System.out.println("dist=");
         System.out.println(Arrays.toString(info.calib.dist));
         if(info != null){
->>>>>>> 13705d8dc8d102a8f17e731d3093b35772f73e10
             rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
             tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
             mtx = new MatOfDouble(3, 3);
@@ -117,19 +113,11 @@ public class Camera extends Subsystem {
                 for (int col = 0; col < 3; col++)
                     mtx.put(row, col, info.calib.mtx[row][col]);
             }
-<<<<<<< HEAD
-
-            MatOfDouble dist = new MatOfDouble(3, 3);
-            for (int row = 0; row < 3; row++) {
-                for (int col = 0; col < 3; col++)
-                    dist.put(row, col, info.calib.dist[row][col]);
-=======
     
             MatOfDouble dist = new MatOfDouble(0, 4);
             for(int row=0;row<1;row++){
                 for(int col=0;col<5;col++)
                      dist.put(row, col, info.calib.dist[row][col]);
->>>>>>> 13705d8dc8d102a8f17e731d3093b35772f73e10
             }
 
             drawAxis();

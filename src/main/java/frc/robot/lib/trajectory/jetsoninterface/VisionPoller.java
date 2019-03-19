@@ -16,10 +16,8 @@ public class VisionPoller extends Thread {
     private boolean shutdownNow = false;
     private long pollCount = 0;
 
-    String[] allowedErrors = {"Unable to find 2 target contours", 
-            "Could not find 2 targets", 
-            "Hull does not have 6 vertices", 
-            "Unable to determine target pose using solvepnp"};
+    String[] allowedErrors = { "Unable to find 2 target contours", "Could not find 2 targets",
+            "Hull does not have 6 vertices", "Unable to determine target pose using solvepnp" };
 
     private static VisionPoller instance;
 
@@ -191,25 +189,20 @@ public class VisionPoller extends Thread {
         }
     }
 
-<<<<<<< HEAD
-    // Returns the relative postion from robot to the vision target
-    public Delta getRelativePosition() {
-=======
-    private void printError(String errorMessage){
+    private void printError(String errorMessage) {
         boolean allowed = false;
-        for (int i=0; i<allowedErrors.length; i++){
-            if (errorMessage.contains(allowedErrors[i])){
+        for (int i = 0; i < allowedErrors.length; i++) {
+            if (errorMessage.contains(allowedErrors[i])) {
                 allowed = true;
             }
         }
-        if (!allowed){
+        if (!allowed) {
             System.out.println("VisionPoller: " + errorMessage);
         }
     }
 
-    //Returns the relative postion from robot to the vision target
-    public Delta getRelativePosition(){
->>>>>>> 13705d8dc8d102a8f17e731d3093b35772f73e10
+    // Returns the relative postion from robot to the vision target
+    public Delta getRelativePosition() {
         TargetInfo info = getLatestTargetInfoHandleErrors();
         if (info == null) {
             return null;
@@ -234,7 +227,8 @@ public class VisionPoller extends Thread {
             this.theta = theta;
             this.timeStamp = timeStamp;
         }
-        public void print(){
+
+        public void print() {
             System.out.println("Delta object:");
             System.out.println("    x=" + x);
             System.out.println("    y=" + y);
