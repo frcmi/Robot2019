@@ -1,6 +1,5 @@
 package frc.robot.lib.trajectory.jetsoninterface;
 
-import frc.robot.lib.util.SnailMath;
 import frc.robot.lib.trajectory.WaypointSequence;
 import frc.robot.lib.util.RobotMap;
 import org.apache.http.impl.client.CloseableHttpClient;

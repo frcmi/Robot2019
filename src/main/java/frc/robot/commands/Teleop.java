@@ -7,6 +7,7 @@ import frc.robot.subsystems.BallShooter;
 import frc.robot.subsystems.Pneumatics;
 import frc.robot.subsystems.TankDrive;
 import frc.robot.subsystems.Light;
+import frc.robot.lib.trajectory.jetsoninterface.VisionPoller;
 
 //Command to move the test motor
 public class Teleop extends CommandBase {
@@ -29,6 +30,11 @@ public class Teleop extends CommandBase {
         driveTrain.updatePID();
         driveTrain.moveLeftDrive(RobotMap.getLeftY());
         driveTrain.moveRightDrive(RobotMap.getRightY());
+
+        //Testing code to get delta
+        if(VisionPoller.getInstance().getRelativePosition()!=null){
+            VisionPoller.getInstance().getRelativePosition().print();
+        }
     }
 
     // Called just before this Command runs for the first time
