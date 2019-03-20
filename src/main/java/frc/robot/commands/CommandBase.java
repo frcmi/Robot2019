@@ -4,6 +4,7 @@ import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.Pneumatics;
 import frc.robot.subsystems.TankDrive;
 import frc.robot.subsystems.BallShooter;
+import frc.robot.subsystems.Camera;
 import frc.robot.subsystems.Light;
 import frc.robot.subsystems.BottomPistons;
 
@@ -15,6 +16,7 @@ public abstract class CommandBase extends Command {
     public static DriveTrain driveTrain; // Drive train subsystem
     public static Pneumatics pneumatics; // Pneumatics subsystem
     public static BallShooter ballShooter;
+    public static Camera camera;
     public static Light light;
     public static BottomPistons bottomPistons;
 
@@ -22,6 +24,7 @@ public abstract class CommandBase extends Command {
         driveTrain = TankDrive.getInstance();
         pneumatics = Pneumatics.getInstance();
         ballShooter = BallShooter.getInstance();
+        camera = Camera.getInstance();
         light = Light.getInstance();
         bottomPistons = BottomPistons.getInstance();
     }

@@ -1,5 +1,6 @@
 package frc.robot.lib.trajectory;
 
+import frc.robot.lib.util.SnailMath;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -73,22 +74,12 @@ public class WaypointSequence {
         for (int i = 0; i < num_waypoints_; ++i) {
             inverted.waypoints_[i] = waypoints_[i];
             inverted.waypoints_[i].y *= -1;
-            inverted.waypoints_[i].theta = boundAngle0to2PiRadians(2 * Math.PI - inverted.waypoints_[i].theta);
+            inverted.waypoints_[i].theta = SnailMath
+                    .boundAngle0to2PiRadians(2 * Math.PI - inverted.waypoints_[i].theta);
         }
 
         return inverted;
     }
-
-    public double boundAngle0to2PiRadians(double angle) {
-        // Naive algorithm
-        while (angle >= 2.0 * Math.PI) {
-          angle -= 2.0 * Math.PI;
-        }
-        while (angle < 0.0) {
-          angle += 2.0 * Math.PI;
-        }
-        return angle;
-      }
 
     @JsonValue
     public Waypoint[] toList() {

@@ -7,12 +7,15 @@
 
 package frc.robot;
 
+import frc.robot.commands.Autonomous1;
+import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.Teleop;
 import frc.robot.commands.ControlLight;
 import frc.robot.commands.ControlPistons;
 import frc.robot.commands.UpdateInfo;
 import frc.robot.commands.ControlPneumatics;
 import frc.robot.commands.ControlShooter;
+import frc.robot.commands.ForwardCamera;
 import frc.robot.lib.util.*;
 import frc.robot.lib.trajectory.jetsoninterface.VisionPoller;
 
@@ -69,6 +72,7 @@ public class Robot extends TimedRobot {
     public void teleopInit() {
         Scheduler.getInstance().removeAll();
         System.out.println("Running teleopInit");
+        Scheduler.getInstance().add(new ForwardCamera());
         Scheduler.getInstance().add(new Teleop());
         Scheduler.getInstance().add(new ControlLight());
         Scheduler.getInstance().add(new ControlShooter());
