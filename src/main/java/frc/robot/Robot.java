@@ -7,8 +7,6 @@
 
 package frc.robot;
 
-import frc.robot.commands.Autonomous1;
-import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.Teleop;
 import frc.robot.commands.ControlLight;
 import frc.robot.commands.ControlPistons;
