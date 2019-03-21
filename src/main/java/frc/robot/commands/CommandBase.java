@@ -7,6 +7,7 @@ import frc.robot.subsystems.BallShooter;
 import frc.robot.subsystems.Camera;
 import frc.robot.subsystems.Light;
 import frc.robot.subsystems.BottomPistons;
+import frc.robot.subsystems.Flap;
 
 import edu.wpi.first.wpilibj.command.Command;
 
@@ -19,6 +20,7 @@ public abstract class CommandBase extends Command {
     public static Camera camera;
     public static Light light;
     public static BottomPistons bottomPistons;
+    public static Flap flap;
 
     static {
         driveTrain = TankDrive.getInstance();
@@ -27,5 +29,6 @@ public abstract class CommandBase extends Command {
         camera = Camera.getInstance();
         light = Light.getInstance();
         bottomPistons = BottomPistons.getInstance();
+        flap = Flap.getInstance();
     }
 }
