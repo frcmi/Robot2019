@@ -30,7 +30,6 @@ __pycache__/
 
 # Gradle files #
 /.gradle/
-/.classpath
 
 # Build files #
 /build/
