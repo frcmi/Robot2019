@@ -51,6 +51,7 @@ public class RobotMap {
     public static final int PWM_BACK_LEFT = 3;
     public static final int PWM_FRONT_LEFT = 2;
     public static final int PWM_BALL_SHOOTER = 4;
+    public static final int PWM_FLAP = 5;
 
     // Channels (PCM)
     public static final int PCM_SOLENOID_FORWARD = 7;
@@ -73,6 +74,7 @@ public class RobotMap {
     public static Victor backLeft = new Victor(PWM_BACK_LEFT);
     public static Victor frontLeft = new Victor(PWM_FRONT_LEFT);
     public static Victor ballShooter = new Victor(PWM_BALL_SHOOTER);
+    public static Victor hatchFlap = new Victor(PWM_FLAP);
     public static DoubleSolenoid sol = new DoubleSolenoid(PCM_SOLENOID_FORWARD, PCM_SOLENOID_BACKWARD);
     public static DoubleSolenoid liftBack = new DoubleSolenoid(PCM_LIFTBACK_FORWARD, PCM_LIFTBACK_BACKWARD);
     public static DoubleSolenoid liftFront = new DoubleSolenoid(PCM_LIFTFRONT_FORWARD, PCM_LIFTFRONT_BACKWARD);
@@ -86,8 +88,7 @@ public class RobotMap {
     public static Solenoid ledRing = new Solenoid(PCM_LEDRING);
 
     // Data about the robot
-    // TODO: measure the distance between wheels
-    public static double distBetweenWheels = 1.0; // in meters
+    public static double distBetweenWheels = 1.0; // in meters TODO: measure this
     public static double commandUpdateInterval = 0.02; // in seconds
 
     // Thrustmaster T1600M (x2)
@@ -97,6 +98,7 @@ public class RobotMap {
     // Data about the camera to go to the user
     public static int userCamResX = 640;
     public static int userCamResY = 480;
+    public static int userCamFPS = 20;
 
     // Jetson information
     public static double camDistance = 10.0; //The distance between the two cameras in inches
@@ -156,6 +158,14 @@ public class RobotMap {
 
     public static int getLeftHat() {
         return leftThrust.getPOV();
+    }
+
+    public static double getLeftSlider() {
+        return leftThrust.getRawAxis(3);
+    }
+
+    public static double getRightSlider() {
+        return rightThrust.getRawAxis(3);
     }
 
 

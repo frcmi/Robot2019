@@ -35,6 +35,7 @@ public class Camera extends Subsystem {
 
     private int screenWidth;
     private int screenHeight;
+    private int fps;
     private UsbCamera camera;
 
     private CvSink cvSink;
@@ -45,10 +46,12 @@ public class Camera extends Subsystem {
 
     private Camera() {
         super();
+        fps = RobotMap.userCamFPS;
         screenWidth = RobotMap.userCamResX;
         screenHeight = RobotMap.userCamResY;
         camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(screenWidth, screenHeight);
+        camera.setFPS(fps);
         cvSink = CameraServer.getInstance().getVideo();
         cvSink.setEnabled(true);
         outputStream = CameraServer.getInstance().putVideo("Camera Output", screenWidth, screenHeight);
