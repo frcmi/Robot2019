@@ -28,6 +28,16 @@ public class RobotMap {
     // Raise Front Piston: Right Joystick, Right Button
     // Lower Front Piston: Right Joystick, Center Button
 
+    //Pathfinder params
+    public static double maxVelocity = 1.7; // in m/s
+    public static double maxAcceleration = 2.7; // in m/s^2
+    public static double maxJerk = 60.0; // in m/s^3
+    public static double position = 1;
+    public static double integral = 0; //unused for current motion profiling
+    public static double derivative = 0;
+    public static double accelerationGain = 0;
+    public static double stopDistanceFromHatch = 0.5; //in meters
+
 
 
 
@@ -82,13 +92,28 @@ public class RobotMap {
     // Define inputs
     public static Encoder leftEncoder = new Encoder(ENCODER_FRONT_LEFT, ENCODER_BACK_LEFT);
     public static Encoder rightEncoder = new Encoder(ENCODER_FRONT_RIGHT, ENCODER_BACK_RIGHT);
+
+    public static double getLeftEncoder(){
+        return leftEncoder.get();
+    }
+    public static double getRightEncoder(){
+        return rightEncoder.get();
+    }
+
+    public static int encoderTicksPerRevolution = 1000;
     public static AHRS navx = new AHRS(SPI.Port.kMXP, (byte)100); //last integer is the bit rate (updates per second) of the navx
+
+    public static double getGyroHeading(){
+        return navx.getAngle();
+    }
 
     // LED Ring
     public static Solenoid ledRing = new Solenoid(PCM_LEDRING);
 
     // Data about the robot
-    public static double distBetweenWheels = 1.0; // in meters TODO: measure this
+    // TODO: measure the distance between wheels
+    public static double distBetweenWheels = 1.0; // in meters
+    public static double wheelDiameter = 1.0; //in meters
     public static double commandUpdateInterval = 0.02; // in seconds
 
     // Thrustmaster T1600M (x2)

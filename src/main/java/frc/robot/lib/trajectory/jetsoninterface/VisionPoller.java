@@ -207,14 +207,15 @@ public class VisionPoller extends Thread {
         if (info == null) {
             return null;
         } else {
+            //Don't know if this is right, needs to be tested
             return new Delta(info.y / SnailMath.inchesToMeters, info.x / SnailMath.inchesToMeters,
-                    -info.rx * Math.PI / 180, info.nanoTime);
+                    (90.0 - info.rx) * Math.PI / 180, client.serverToLocalTimeNano(info.nanoTime));
         }
     }
 
     // Stores x and y which represent the distance forward to the board and the
     // sideways distance respectively, and the
-    // sideways angle of the board in radians
+    // sideways angle of the board in radians (counterclockwise)
     public class Delta {
         public double x;
         public double y;

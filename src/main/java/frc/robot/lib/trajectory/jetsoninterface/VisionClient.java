@@ -85,6 +85,13 @@ public class VisionClient {
         return (long) (monoSecs * nanosPerSecond) - serverShiftNano;
     }
 
+    public long serverToLocalTimeNano(double nanoSecs) {
+        if (!haveServerShift) {
+            throw new RuntimeException("Request for server local time prior to synchronization");
+        }
+        return (long) nanoSecs - serverShiftNano;
+    }
+
     long serverToLocalTimeSync(double monoSecs) {
         long serverShift = getServerShift();
         return (long) (monoSecs * nanosPerSecond) - serverShift;
