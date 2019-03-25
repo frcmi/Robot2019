@@ -1,14 +1,22 @@
 package frc.robot.lib.trajectory.jetsoninterface.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.opencv.core.Mat;
+
+import frc.robot.lib.trajectory.jetsoninterface.OpencvHelper;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 //@JsonIgnoreProperties(ignoreUnknown = true)
 public class TargetInfoResponseData {
+    private static OpencvHelper cvh = OpencvHelper.getInstance();
+
     public double x;
     public double y;
-    public double tvec[][];
+    public double tvec[][];        /* 3x1 Column vector containing a single 3D point */
     public double ts_request_mono;
     public double ts_pre_mono;
     public double ts_pre;
@@ -17,13 +25,19 @@ public class TargetInfoResponseData {
     public double t;
     public double rx;
     public double ry;
-    public double rvec[][];
+    public double rvec[][];       /* 3x1 column vector containing a single 3d point */
     public double originpt[][][];
     public double jacobian[][];
     public long frame_num_pre;
     public long frame_num_post;
     public double dst[][];
     public Calib calib;
+
+    @JsonIgnore
+    public Mat cvTvec;
+
+    @JsonIgnore
+    public Mat cvRvec;
 
     @JsonCreator
     public TargetInfoResponseData(
@@ -65,5 +79,7 @@ public class TargetInfoResponseData {
         this.frame_num_post = frame_num_post;
         this.dst = dst;
         this.calib = calib;
+        this.cvTvec = cvh.double2DToMat64FC1(tvec);
+        this.cvRvec = cvh.double2DToMat64FC1(rvec);
     }
 }

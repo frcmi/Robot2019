@@ -8,6 +8,8 @@ import static java.lang.Math.PI;
 //import java.lang.Math.*;
 
 public class QueryJetsonTest {
+    private static OpencvHelper cvh = OpencvHelper.getInstance();
+
     public static void main(String[] args) {
         String url = "http://tegra-ubuntu.local:5800";
         if (args.length > 0) {
@@ -53,8 +55,8 @@ public class QueryJetsonTest {
                 long localTime = System.nanoTime();
                 System.out.printf("POLL JETSON: Success!\n  Local Time: %d\n", localTime);
                 System.out.printf("  Cam Time: %d\n", info.nanoTime);
-                System.out.printf("  Rvec: [%f, %f, %f]\n", info.rvec[0], info.rvec[1], info.rvec[2]);
-                System.out.printf("  Tvec: [%f, %f, %f]\n", info.tvec[0], info.tvec[1], info.tvec[2]);
+                cvh.printMat(info.cvRvec, "Rvec");
+                cvh.printMat(info.cvTvec, "Tvec");
             } else {
                 System.out.printf("POLL JETSON: Failure: %s\n", tr.failureReason);
             }

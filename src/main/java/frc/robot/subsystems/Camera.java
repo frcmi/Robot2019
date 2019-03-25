@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.lib.util.RobotMap;
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
+import frc.robot.lib.trajectory.jetsoninterface.OpencvHelper;
 import frc.robot.lib.trajectory.jetsoninterface.TargetInfo;
 import frc.robot.lib.trajectory.jetsoninterface.VisionException;
 import frc.robot.lib.trajectory.jetsoninterface.VisionPoller;
@@ -25,6 +26,8 @@ public class Camera extends Subsystem {
     // of calling the constructor directly, the client should use getInstance to
     // prevent duplication
     // of Subsystem objects.
+
+    private static OpencvHelper cvh = OpencvHelper.getInstance();    
     private static Camera instance;
 
     public static Camera getInstance() {
@@ -88,9 +91,9 @@ public class Camera extends Subsystem {
     }
 
     Mat srcPointer;
-    MatOfDouble rvec;
-    MatOfDouble tvec;
-    MatOfDouble mtx;
+    Mat rvec;
+    Mat tvec;
+    Mat mtx;
     MatOfDouble dist;
 
     public void drawOnFrame(Mat src) {
@@ -100,29 +103,15 @@ public class Camera extends Subsystem {
             return;
         }
 
-        System.out.println("rvec=");
-        System.out.println(Arrays.toString(info.rvec));
-        System.out.println("tvec=");
-        System.out.println(Arrays.toString(info.tvec));
-        System.out.println("mtx=");
-        System.out.println(Arrays.toString(info.calib.mtx));
-        System.out.println("dist=");
-        System.out.println(Arrays.toString(info.calib.dist));
+        cvh.printMat(info.cvRvec, "rvec");
+        cvh.printMat(info.cvTvec, "tvec");
+        cvh.printMat(info.calib.cvMtx, "mtx");
+        cvh.printMat(info.calib.cvDist, "dist");
         if(info != null){
-            rvec = new MatOfDouble(info.rvec[0], info.rvec[1], info.rvec[2]);
-            tvec = new MatOfDouble(info.tvec[0], info.tvec[1], info.tvec[2]);
-            mtx = new MatOfDouble(3, 3);
-            for (int row = 0; row < 3; row++) {
-                for (int col = 0; col < 3; col++)
-                    mtx.put(row, col, info.calib.mtx[row][col]);
-            }
-    
-            MatOfDouble dist = new MatOfDouble(0, 4);
-            for(int row=0;row<1;row++){
-                for(int col=0;col<5;col++)
-                     dist.put(row, col, info.calib.dist[row][col]);
-            }
-
+            rvec = info.cvRvec;
+            tvec = info.cvTvec;
+            mtx = info.calib.cvMtx;
+            dist = info.calib.cvDist;
             drawAxis();
         }
     }
@@ -146,7 +135,7 @@ public class Camera extends Subsystem {
     // Draws a line from two given 3d coordinates
     public void drawLine3D(Point3 point1, Point3 point2, Scalar color) {
         MatOfPoint2f pixels = null;
-        Calib3d.projectPoints(new MatOfPoint3f(point1, point2), (Mat) rvec, (Mat) tvec, (Mat) mtx, dist, pixels);
+        Calib3d.projectPoints(new MatOfPoint3f(point1, point2), rvec, tvec, mtx, dist, pixels);
         Imgproc.line(srcPointer, pixels.toArray()[0], pixels.toArray()[1], color);
     }
 }

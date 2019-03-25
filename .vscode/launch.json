@@ -4,18 +4,38 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - OpencvHelper",
+      "request": "launch",
+      "mainClass": "frc.robot.lib.trajectory.jetsoninterface.OpencvHelper",
+      "projectName": "Robot2019"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - OpencvJsonTest",
+      "request": "launch",
+      "mainClass": "frc.robot.lib.trajectory.jetsoninterface.OpencvJsonTest",
+      "projectName": "Robot2019"
+    },
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - QueryJetsonTest",
+      "request": "launch",
+      "mainClass": "frc.robot.lib.trajectory.jetsoninterface.QueryJetsonTest",
+      "projectName": "Robot2019"
+    },
     {
       "type": "wpilib",
       "name": "WPILib Desktop Debug",
       "request": "launch",
-      "desktop": true,
+      "desktop": true
     },
     {
       "type": "wpilib",
       "name": "WPILib roboRIO Debug",
       "request": "launch",
-      "desktop": false,
+      "desktop": false
     }
   ]
 }
