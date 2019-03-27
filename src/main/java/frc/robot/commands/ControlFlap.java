@@ -20,13 +20,7 @@ public class ControlFlap extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        flap.moveFlap(RobotMap.getLeftSlider());
-        
-    }
-
-    // Called just before this Command runs for the first time
-    @Override
-    protected void initialize() {
+        flap.moveFlap(RobotMap.getLeftHat() == 0, RobotMap.getLeftHat() == 180);
     }
 
 

@@ -15,8 +15,14 @@ public class Flap extends Subsystem {
         return instance;
     }
 
-    public void moveFlap(double in) {
-        RobotMap.hatchFlap.set(in);
+    public void moveFlap(boolean a, boolean b) {
+        if (a) {
+            RobotMap.hatchFlap.set(1.0);
+        } else if (b) {
+            RobotMap.hatchFlap.set(-1.0);
+        } else {
+            RobotMap.hatchFlap.set(0.0);
+        }
     }
 
 
