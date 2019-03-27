@@ -81,7 +81,7 @@ public class Camera extends Subsystem {
         } else {
             Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
             drawOnFrame(source);
-            outputStream.putFrame(output);
+            outputStream.putFrame(source);
         }
 
         //Testing code to get delta
