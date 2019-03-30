@@ -35,12 +35,13 @@ public class Pneumatics extends Subsystem {
         setDefaultCommand(null);
     }
 
-    public void setSol(boolean value) {
-        if (value) {
+    public void setSol(boolean a, boolean b) {
+        if (a) {
             mainSol.set(Value.kForward);
-        } else {
+        } else if (b) {
             mainSol.set(Value.kReverse);
         }
+        
     }
 
     public void stop() {
