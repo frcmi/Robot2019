@@ -121,8 +121,8 @@ public class RobotMap {
     public static Joystick rightThrust = new Joystick(JOYSTICK_RIGHT);
 
     // Data about the camera to go to the user
-    public static int userCamResX = 640;
-    public static int userCamResY = 480;
+    public static int userCamResX = 160;
+    public static int userCamResY = 90;
     public static int userCamFPS = 20;
 
     // Jetson information
