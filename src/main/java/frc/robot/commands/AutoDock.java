@@ -17,12 +17,13 @@ public class AutoDock extends CommandBase {
     PathGenThread pathGenThread;
     EncoderFollower left;
     EncoderFollower right;
-    boolean finished;
+    public boolean finished;
 
-    public AutoDock() {
+    public AutoDock(Delta delta) {
         // Requires defines any subsystem dependencies, so more than one command can't
         // use a subsystem at the same time
         requires(driveTrain);
+        this.delta = delta;
         finished = false;
     }
 
@@ -34,13 +35,6 @@ public class AutoDock extends CommandBase {
     // Called just before this Command runs for the first time
     @Override
     protected void initialize() {
-        this.delta = VisionPoller.getInstance().getRelativePosition();
-        if (delta == null){
-            finished = true;
-            System.out.println("AutoDock: could not get target delta");
-            return;
-        }
-        //Stop both motors
         driveTrain.moveLeftDrive(0.0);
         driveTrain.moveRightDrive(0.0);
 
@@ -56,7 +50,7 @@ public class AutoDock extends CommandBase {
         if (finished || pathGenThread.isAlive()){
             return;
         }
-
+        /*
         // ---- getting a new delta ----
         Delta newDelta = VisionPoller.getInstance().getRelativePosition();
         if(newDelta != null && newDelta != delta){
@@ -64,6 +58,7 @@ public class AutoDock extends CommandBase {
         }
         long timeDiff = System.nanoTime() - delta.timeStamp;
         // ---- this is not currently used ----
+        */
 
         double l = left.calculate((int) RobotMap.getLeftEncoder());
         double r = right.calculate((int) RobotMap.getRightEncoder());
@@ -75,9 +70,11 @@ public class AutoDock extends CommandBase {
 
         driveTrain.moveLeftDrive(l+turn);
         driveTrain.moveRightDrive(r-turn);
+
+        if(left.isFinished() && right.isFinished()){
+            finished = true;
+        }
     }
-
-
 
     // Make this return true when this Command no longer needs to run execute()
     @Override
