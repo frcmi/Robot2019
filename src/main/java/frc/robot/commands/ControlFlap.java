@@ -20,7 +20,13 @@ public class ControlFlap extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        flap.moveFlap(RobotMap.getLeftHat() == 0, RobotMap.getLeftHat() == 180);
+        if (RobotMap.getLeftHat() == 0){
+            flap.set(true);
+        }
+        else if (RobotMap.getLeftHat() == 180){
+            flap.set(false);
+        }
+        flap.move();
     }
 
 
