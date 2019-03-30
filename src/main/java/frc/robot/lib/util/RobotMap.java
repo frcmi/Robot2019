@@ -38,9 +38,6 @@ public class RobotMap {
     public static double accelerationGain = 0;
     public static double stopDistanceFromHatch = 0.5; //in meters
 
-
-
-
     //Joysticks
     public static final int JOYSTICK_LEFT = 0;
     public static final int JOYSTICK_RIGHT = 1;
@@ -112,8 +109,8 @@ public class RobotMap {
 
     // Data about the robot
     // TODO: measure the distance between wheels
-    public static double distBetweenWheels = 1.0; // in meters
-    public static double wheelDiameter = 1.0; //in meters
+    public static double distBetweenWheels = 0.635; // in meters
+    public static double wheelDiameter = 0.087; //in meters
     public static double commandUpdateInterval = 0.02; // in seconds
 
     // Thrustmaster T1600M (x2)
