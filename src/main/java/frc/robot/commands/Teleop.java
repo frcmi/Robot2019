@@ -17,16 +17,9 @@ public class Teleop extends CommandBase {
         requires(driveTrain);
     }
 
-    // Called when the command starts running
-    @Override
-    public void start() {
-
-    }
-
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        driveTrain.updatePID();
         driveTrain.moveLeftDrive(RobotMap.getLeftY());
         driveTrain.moveRightDrive(RobotMap.getRightY());
     }

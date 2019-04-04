@@ -1,5 +1,6 @@
 package frc.robot.commands;
-
+import frc.robot.lib.util.Delta;
+import frc.robot.commands.AutoDock;
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.lib.util.RobotMap;
@@ -8,29 +9,38 @@ import frc.robot.subsystems.Pneumatics;
 import frc.robot.subsystems.TankDrive;
 import frc.robot.subsystems.Light;
 
-//Command to move the test motor
-public class ControlLight extends CommandBase {
 
-    public ControlLight() {
-        // Requires defines any subsystem dependencies, so more than one command can't
-        // use a subsystem at the same time
-        requires(light);
+public class ButtonCommandHandler extends CommandBase {
+
+    public ButtonCommandHandler() {
     }
 
+    int lastLeftHat = -1;
+    boolean lastAutoTestButton = false;
     // Called periodically while the command is running
-    private boolean lastButtonState = false;
-
     @Override
     protected void execute() {
-        if (RobotMap.getLeftRight() && !lastButtonState) {
-            light.toggle();
+        // Controls flip flap using MoveFlap commands
+        int leftHat = RobotMap.getLeftHat();
+        if (leftHat != lastLeftHat){
+            if (RobotMap.getLeftHat() == 0){
+                new MoveFlap(1).start();
+            } else if (RobotMap.getLeftHat() == 180){
+                new MoveFlap(-1).start();
+            }
         }
 
-        lastButtonState = RobotMap.getLeftRight();
+        // Auto test button mapping
+        boolean autoTestButton = false; //make that here
+        if (autoTestButton != lastAutoTestButton && autoTestButton == true){
+            new AutoDock(new Delta(2, 1, Math.PI/3, (long) 0)).start();
+        }
+
     }
 
     // Called just before this Command runs for the first time
     @Override
+
     protected void initialize() {
     }
 
@@ -43,7 +53,6 @@ public class ControlLight extends CommandBase {
     // Called once after isFinished returns true
     @Override
     protected void end() {
-        light.set(0);
     }
 
     // Called when another command which requires one or more of the same

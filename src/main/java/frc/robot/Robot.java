@@ -10,8 +10,8 @@ package frc.robot;
 import frc.robot.commands.Teleop;
 import frc.robot.commands.ControlLight;
 import frc.robot.commands.ControlPistons;
-import frc.robot.commands.UpdateInfo;
 import frc.robot.commands.ControlPneumatics;
+import frc.robot.commands.ButtonCommandHandler;
 import frc.robot.commands.ControlShooter;
 import frc.robot.commands.ForwardCamera;
 import frc.robot.lib.util.*;
@@ -70,11 +70,7 @@ public class Robot extends TimedRobot {
     public void teleopInit() {
         Scheduler.getInstance().removeAll();
         System.out.println("Running teleopInit");
-        Scheduler.getInstance().add(new ForwardCamera());
-        Scheduler.getInstance().add(new ControlLight());
-        Scheduler.getInstance().add(new ControlShooter());
-        Scheduler.getInstance().add(new ControlPistons());
-        Scheduler.getInstance().add(new ControlPneumatics());
+        new ButtonCommandHandler().start();
     }
 
     // Called periodically during operator control period
@@ -99,7 +95,6 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         Scheduler.getInstance().removeAll();
-        Scheduler.getInstance().add(new UpdateInfo());
     }
 
     // Called periodically when the robot is in disabled mode

@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import frc.robot.lib.util.*;
+import frc.robot.commands.ControlShooter;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
@@ -25,7 +26,7 @@ public class BallShooter extends Subsystem {
     // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
-        setDefaultCommand(null);
+        setDefaultCommand(new ControlShooter());
     }
 
     public void setMotor(boolean valOne, boolean valTwo) {

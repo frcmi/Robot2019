@@ -13,11 +13,6 @@ public class ControlShooter extends CommandBase {
         requires(ballShooter);
     }
 
-    // Called when the command starts running
-    @Override
-    public void start() {
-    }
-
     // Called periodically while the command is running
     @Override
     protected void execute() {

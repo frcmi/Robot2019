@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import frc.robot.lib.util.RobotMap;
+import frc.robot.commands.ControlPneumatics;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
@@ -32,7 +33,7 @@ public class Pneumatics extends Subsystem {
     // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
-        setDefaultCommand(null);
+        setDefaultCommand(new ControlPneumatics());
     }
 
     public void setSol(boolean a, boolean b) {

@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.lib.util.RobotMap;
 import frc.robot.lib.trajectory.jetsoninterface.model.*;
+import frc.robot.commands.ForwardCamera;
 import frc.robot.lib.trajectory.jetsoninterface.OpencvHelper;
 import frc.robot.lib.trajectory.jetsoninterface.TargetInfo;
 import frc.robot.lib.trajectory.jetsoninterface.VisionException;
@@ -65,9 +66,9 @@ public class Camera extends Subsystem {
     // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
-        setDefaultCommand(null);
+        setDefaultCommand(new ForwardCamera());
     }
-
+    
     // Called every tick by a thread when the ForwardCamera command is running
     public void forwardFrame() {
         long frameTime = cvSink.grabFrame(source);

@@ -13,12 +13,6 @@ public class ForwardCamera extends CommandBase {
         thread = new CameraThread();
     }
 
-    // Called when the command starts running
-    @Override
-    public void start() {
-        System.out.println("Starting CameraThread");
-    }
-
     // Called periodically while the command is running
     @Override
     protected void execute() {

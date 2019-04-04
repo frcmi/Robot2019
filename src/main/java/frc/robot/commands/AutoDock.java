@@ -4,7 +4,7 @@ import frc.robot.Robot;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.lib.util.RobotMap;
 import frc.robot.lib.trajectory.jetsoninterface.VisionPoller;
-import frc.robot.lib.trajectory.jetsoninterface.VisionPoller.Delta;
+import frc.robot.lib.util.Delta;
 import jaci.pathfinder.Pathfinder;
 import jaci.pathfinder.Waypoint;
 import jaci.pathfinder.Trajectory;
@@ -25,11 +25,6 @@ public class AutoDock extends CommandBase {
         requires(driveTrain);
         this.delta = delta;
         finished = false;
-    }
-
-    // Called when the command starts running
-    @Override
-    public void start() {
     }
 
     // Called just before this Command runs for the first time
@@ -118,7 +113,7 @@ class PathGenThread extends Thread {
         double theta = dockingCommand.delta.theta;
         double x = dockingCommand.delta.x - d * Math.cos(theta);
         double y = dockingCommand.delta.y - d * Math.sin(theta);
-        
+
         long runStartTime = System.nanoTime();
         Waypoint[] points = new Waypoint[] {
             new Waypoint(0.0, 0.0, 0.0),

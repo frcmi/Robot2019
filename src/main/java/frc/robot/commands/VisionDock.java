@@ -1,26 +1,12 @@
 package frc.robot.commands;
 
-import frc.robot.Robot;
-import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.lib.util.RobotMap;
 import frc.robot.lib.trajectory.jetsoninterface.VisionPoller;
-import frc.robot.lib.trajectory.jetsoninterface.VisionPoller.Delta;
+import frc.robot.lib.util.Delta;
 import frc.robot.commands.AutoDock;
-import jaci.pathfinder.Pathfinder;
-import jaci.pathfinder.Waypoint;
-import jaci.pathfinder.Trajectory;
-import jaci.pathfinder.modifiers.TankModifier;
-import jaci.pathfinder.followers.EncoderFollower;
-import edu.wpi.first.wpilibj.command.Scheduler;
 
 //Command that starts AutoDock using vision delta
 public class VisionDock extends CommandBase {
     public VisionDock() {
-    }
-
-    // Called when the command starts running
-    @Override
-    public void start() {
     }
 
     // Called just before this Command runs for the first time
@@ -32,7 +18,7 @@ public class VisionDock extends CommandBase {
             return;
         }
         AutoDock autoDocker = new AutoDock(delta);
-        Scheduler.getInstance().add(autoDocker);
+        autoDocker.start();
     }
 
     // Called periodically while the command is running

@@ -8,6 +8,7 @@ import frc.robot.subsystems.Camera;
 import frc.robot.subsystems.Light;
 import frc.robot.subsystems.BottomPistons;
 import frc.robot.subsystems.Flap;
+import edu.wpi.first.wpilibj.command.Scheduler;
 
 import edu.wpi.first.wpilibj.command.Command;
 
@@ -21,6 +22,11 @@ public abstract class CommandBase extends Command {
     public static Light light;
     public static BottomPistons bottomPistons;
     public static Flap flap;
+
+    @Override
+    public void start(){
+        Scheduler.getInstance().add(this);
+    }
 
     static {
         driveTrain = TankDrive.getInstance();

@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import frc.robot.lib.util.PIDInfo;
 import frc.robot.commands.Teleop;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
@@ -18,10 +17,6 @@ public abstract class DriveTrain extends Subsystem {
     @Override
     protected void initDefaultCommand() {
         setDefaultCommand(new Teleop());
-    }
-
-    public void updatePID() {
-        PIDInfo.getInstance().update();
     }
 
     public abstract void stop();

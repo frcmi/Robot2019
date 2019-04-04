@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
-import frc.robot.subsystems.Pneumatics;
+import frc.robot.commands.ControlLight;
 import frc.robot.lib.util.RobotMap;
 import edu.wpi.first.wpilibj.*;
 
@@ -21,6 +21,7 @@ public class Light extends Subsystem {
 
     @Override
     protected void initDefaultCommand() {
+        setDefaultCommand(new ControlLight());
     }
 
     public void set(int state) {
