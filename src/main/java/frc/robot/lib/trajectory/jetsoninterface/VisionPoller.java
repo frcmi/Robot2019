@@ -22,9 +22,13 @@ public class VisionPoller extends Thread {
     private static VisionPoller instance;
 
     public static VisionPoller getInstance() {
-        if (instance == null)
-            instance = new VisionPoller(defaultServerUrl);
         return instance;
+    }
+
+    public static void makeInstance(){
+        if (instance == null){
+            instance = new VisionPoller(defaultServerUrl);
+        }
     }
 
     public static String normalizeUrl(String serverUrl) {

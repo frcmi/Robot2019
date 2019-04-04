@@ -44,7 +44,7 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().enable();
         System.out.println("Robot initializing");
         info = new RobotInfo();
-        VisionPoller.getInstance();
+        VisionPoller.makeInstance();
 
         SmartDashboard.putData("Commands", Scheduler.getInstance()); // Makes the SmartDashboard display the status of
                                                                      // running commands
@@ -71,7 +71,6 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().removeAll();
         System.out.println("Running teleopInit");
         Scheduler.getInstance().add(new ForwardCamera());
-        Scheduler.getInstance().add(new Teleop());
         Scheduler.getInstance().add(new ControlLight());
         Scheduler.getInstance().add(new ControlShooter());
         Scheduler.getInstance().add(new ControlPistons());

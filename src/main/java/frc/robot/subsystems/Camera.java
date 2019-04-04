@@ -85,7 +85,7 @@ public class Camera extends Subsystem {
         }
 
         //Testing code to get delta
-        if(VisionPoller.getInstance().getRelativePosition()!=null){
+        if(VisionPoller.getInstance() != null && VisionPoller.getInstance().getRelativePosition()!=null){
             VisionPoller.getInstance().getRelativePosition().print();
         }
     }
@@ -98,6 +98,11 @@ public class Camera extends Subsystem {
 
     public void drawOnFrame(Mat src) {
         srcPointer = src;
+
+        //Makes it exit cleanly if it cannot communicate with VisionPoller
+        if (VisionPoller.getInstance() == null){
+            return;
+        }
         TargetInfo info = VisionPoller.getInstance().getLatestTargetInfoHandleErrors();
         if (info == null){
             return;
@@ -107,13 +112,11 @@ public class Camera extends Subsystem {
         cvh.printMat(info.cvTvec, "tvec");
         cvh.printMat(info.calib.cvMtx, "mtx");
         cvh.printMat(info.calib.cvDist, "dist");
-        if(info != null){
-            rvec = info.cvRvec;
-            tvec = info.cvTvec;
-            mtx = info.calib.cvMtx;
-            dist = info.calib.cvDist;
-            drawAxis();
-        }
+        rvec = info.cvRvec;
+        tvec = info.cvTvec;
+        mtx = info.calib.cvMtx;
+        dist = info.calib.cvDist;
+        drawAxis();
     }
 
     // Draw the axis for debugging
