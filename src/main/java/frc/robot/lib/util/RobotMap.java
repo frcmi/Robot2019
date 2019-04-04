@@ -190,5 +190,11 @@ public class RobotMap {
         return rightThrust.getRawAxis(3);
     }
 
+    public static boolean leftWhiteButton() {
+        return leftThrust.getRawButton(14);
+    }
+
+    public static boolean 
+
 
 }
