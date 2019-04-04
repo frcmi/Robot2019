@@ -66,7 +66,7 @@ public class Camera extends Subsystem {
     // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
-        setDefaultCommand(new ForwardCamera());
+        setDefaultCommand(null);
     }
     
     // Called every tick by a thread when the ForwardCamera command is running
@@ -81,6 +81,7 @@ public class Camera extends Subsystem {
             }
         } else {
             Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
+            Imgproc.line(source, new Point(10, 10), new Point(30, 30), new Scalar(255, 0, 0));
             drawOnFrame(source);
             outputStream.putFrame(source);
         }

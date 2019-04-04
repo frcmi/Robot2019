@@ -23,6 +23,7 @@ public class ForwardCamera extends CommandBase {
     @Override
     protected void initialize() {
         System.out.println("Initializing forwardCamera command");
+        thread = new CameraThread();
         thread.start();
 
     }
@@ -36,9 +37,11 @@ public class ForwardCamera extends CommandBase {
     // Called once after isFinished returns true
     @Override
     protected void end() {
-        thread.stopRunning();
-        isFinished = true;
-        System.out.println("Ending forwardCamera command");
+        if (isFinished == false){
+            thread.stopRunning();
+            isFinished = true;
+            System.out.println("Ending forwardCamera command");
+        }
     }
 
     // Called when another command which requires one or more of the same

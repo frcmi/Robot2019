@@ -17,7 +17,6 @@ public class ControlFlap extends CommandBase {
     @Override
     protected void execute() {
         boolean switchVal = RobotMap.flipFlapSwitch.get();
-        System.out.println(switchVal);
         if (!RobotMap.flipFlapSwitch.get()){
             goDown = false;
         }

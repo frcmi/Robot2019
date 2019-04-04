@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.subsystems.lib.Tread;
 import frc.robot.lib.util.*;
+import frc.robot.commands.Teleop;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.*;
@@ -37,7 +38,7 @@ public class TankDrive extends DriveTrain {
     // Sets default command for the system
     @Override
     protected void initDefaultCommand() {
-        setDefaultCommand(null);
+        setDefaultCommand(new Teleop());
     }
 
     // Moves the right tread with power magnitude

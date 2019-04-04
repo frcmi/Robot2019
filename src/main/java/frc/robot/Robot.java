@@ -71,6 +71,7 @@ public class Robot extends TimedRobot {
         Scheduler.getInstance().removeAll();
         System.out.println("Running teleopInit");
         new ButtonCommandHandler().start();
+        new ForwardCamera().start();
     }
 
     // Called periodically during operator control period
