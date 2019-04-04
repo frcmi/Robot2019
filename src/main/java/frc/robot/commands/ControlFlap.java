@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 
 public class ControlFlap extends CommandBase {
     private int lastInput = -1;
+    private boolean goDown = false;
     
     public ControlFlap() {
         requires(flap);
@@ -15,13 +16,25 @@ public class ControlFlap extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        if (RobotMap.getLeftHat() == 0){
-            flap.setMotor(0.5);
-        } else if(RobotMap.getLeftHat() == 180){
-            flap.setMotor(-0.5);
-        } else{
-            flap.setMotor(0.0);
+        boolean switchVal = RobotMap.flipFlapSwitch.get();
+        System.out.println(switchVal);
+        if (!RobotMap.flipFlapSwitch.get()){
+            goDown = false;
         }
+        if (goDown){
+            flap.setMotor(-0.5);
+        }
+        else{
+            if (RobotMap.getLeftHat() == 0){
+                flap.setMotor(0.5);
+            } else if(RobotMap.getLeftHat() == 180 && RobotMap.flipFlapSwitch.get()){
+                flap.setMotor(-0.5);
+                goDown = true;
+            } else{
+                flap.setMotor(0.0);
+            }
+        }
+
     }
 
     // Make this return true when this Command no longer needs to run execute()

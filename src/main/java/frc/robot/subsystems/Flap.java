@@ -28,26 +28,6 @@ public class Flap extends Subsystem {
 
     public void setMotor(double magnitude){
         RobotMap.hatchFlap.set(magnitude);
-        System.out.println(getPosition());
-    }
-
-    public double getPosition(){
-        double motorMagnitude = RobotMap.hatchFlap.get();
-        int currentHall = RobotMap.getHall();
-
-        int direction;
-        if (Math.abs(motorMagnitude) < 0.001){
-            direction = 0;
-        } else{
-            direction = (int) Math.round(motorMagnitude / Math.abs(motorMagnitude));
-        }
-
-        int displacementMagnitude = currentHall - lastHall;
-        lastHall = currentHall;
-
-        position += displacementMagnitude * direction;
-
-        return position;
     }
 
     public void stop(){

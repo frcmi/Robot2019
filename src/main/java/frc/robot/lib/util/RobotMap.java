@@ -109,6 +109,8 @@ public class RobotMap {
         return hall.get();
     }
 
+    public static DigitalInput flipFlapSwitch = new DigitalInput(7);
+
     // LED Ring
     public static Solenoid ledRing = new Solenoid(PCM_LEDRING);
 
