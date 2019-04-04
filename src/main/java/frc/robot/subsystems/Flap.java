@@ -12,10 +12,39 @@ public class Flap extends Subsystem {
         if (instance==null) instance = new Flap();
         return instance;
     }
+
+    private int position;
+    private int lastHall;
+
+    public Flap(){
+        position = 0;
+        lastHall = 0;
+    }
+
     protected void initDefaultCommand() {}
 
     public void setMotor(double magnitude){
         RobotMap.hatchFlap.set(magnitude);
+        getPosition();
+    }
+
+    public double getPosition(){
+        double motorMagnitude = RobotMap.hatchFlap.get();
+        int currentHall = RobotMap.getHall();
+
+        int direction;
+        if (Math.abs(motorMagnitude) < 0.001){
+            direction = 0;
+        } else{
+            direction = (int) Math.round(motorMagnitude / Math.abs(motorMagnitude));
+        }
+
+        int displacementMagnitude = currentHall - lastHall;
+        lastHall = currentHall;
+
+        position += displacementMagnitude * direction;
+
+        return position;
     }
 
     public void stop(){
