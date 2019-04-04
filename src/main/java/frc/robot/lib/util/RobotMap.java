@@ -104,6 +104,11 @@ public class RobotMap {
         return navx.getAngle();
     }
 
+    public static Counter hall = new Counter(8);
+    public static int getHall() {
+        return hall.get();
+    }
+
     // LED Ring
     public static Solenoid ledRing = new Solenoid(PCM_LEDRING);
 
@@ -194,7 +199,15 @@ public class RobotMap {
         return leftThrust.getRawButton(14);
     }
 
-    public static boolean 
+    public static boolean rightLeftWhite() {
+        return rightThrust.getRawButton(5);
+    }
+
+    public static boolean rightRightWhite() {
+        return rightThrust.getRawButton(16);
+    }
+
+
 
 
 }

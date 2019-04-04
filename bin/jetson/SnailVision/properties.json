@@ -1,0 +1,63 @@
+{
+  "FactsAndLogic": null,
+  "GamersRiseUp1": {
+    "points": [
+      {
+        "enabled": true,
+        "id": "8597bb95-6faf-4379-8b6e-b5e5916d0f06",
+        "name": "Initial Point",
+        "rotation": 0,
+        "x": 100,
+        "y": 100
+      }
+    ]
+  },
+  "despacito": {
+    "points": [
+      {
+        "enabled": true,
+        "id": "5d34d232-c456-45d8-866b-1f9ec54a57bb",
+        "name": "Initial Point",
+        "rotation": 0,
+        "x": 100,
+        "y": 100
+      }
+    ]
+  },
+  "unlnn": {
+    "points": [
+      {
+        "enabled": true,
+        "id": "971cf24f-86ee-4769-aca0-ecec702fe6a5",
+        "name": "Initial Point",
+        "rotation": 0,
+        "x": 100,
+        "y": 100
+      },
+      {
+        "enabled": true,
+        "id": "b159af51-e8f2-4e34-a646-23e7e3d32887",
+        "name": "",
+        "rotation": 50,
+        "x": 150,
+        "y": 150
+      },
+      {
+        "enabled": true,
+        "id": "1fd9ed1e-b38d-49b7-8fef-411d08d455af",
+        "name": "",
+        "rotation": 100,
+        "x": 200,
+        "y": 200
+      },
+      {
+        "enabled": true,
+        "id": "2ecb17c7-ede7-4c2c-b61b-f4c78f408603",
+        "name": "",
+        "rotation": 150,
+        "x": 250,
+        "y": 250
+      }
+    ]
+  }
+}

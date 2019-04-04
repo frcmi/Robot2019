@@ -15,23 +15,13 @@ public class ButtonCommandHandler extends CommandBase {
     public ButtonCommandHandler() {
     }
 
-    int lastLeftHat = -1;
     boolean lastAutoTestButton = false;
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        // Controls flip flap using MoveFlap commands
-        int leftHat = RobotMap.getLeftHat();
-        if (leftHat != lastLeftHat){
-            if (RobotMap.getLeftHat() == 0){
-                new MoveFlap(1).start();
-            } else if (RobotMap.getLeftHat() == 180){
-                new MoveFlap(-1).start();
-            }
-        }
 
         // Auto test button mapping
-        boolean autoTestButton = false; //make that here
+        boolean autoTestButton = RobotMap.leftWhiteButton(); //make that here
         if (autoTestButton != lastAutoTestButton && autoTestButton == true){
             new AutoDock(new Delta(2, 1, Math.PI/3, (long) 0)).start();
         }

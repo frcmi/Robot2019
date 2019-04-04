@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import frc.robot.lib.util.RobotMap;
+import frc.robot.commands.ControlFlap;
 import edu.wpi.first.wpilibj.command.Subsystem;
 
 
@@ -21,11 +22,13 @@ public class Flap extends Subsystem {
         lastHall = 0;
     }
 
-    protected void initDefaultCommand() {}
+    protected void initDefaultCommand() {
+        setDefaultCommand(new ControlFlap());
+    }
 
     public void setMotor(double magnitude){
         RobotMap.hatchFlap.set(magnitude);
-        getPosition();
+        System.out.println(getPosition());
     }
 
     public double getPosition(){

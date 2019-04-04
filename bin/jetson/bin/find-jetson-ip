@@ -1,0 +1,79 @@
+#!/bin/bash
+
+set -e
+set -x
+
+JETSON_NET_INTERFACE=ens33
+
+if [ -n "$1" ]; then
+  JETSON_NET_INTERFACE=$1
+fi
+
+# convert a.b.c.d ip address into  unsigned integer
+iptodec() {
+  local ip=$1
+  local ipv=0
+  local dec
+  IFS=.
+  for dec in $ip ; do
+    ipv=$(( ( 256 * $ipv ) + $dec ))
+  done
+  unset IFS
+  echo "$ipv"
+}
+
+
+# convert an IP address and hex netmask to the CIDR of the subnet
+ipnmtocidr() {
+  local ip=$1
+  local raw_netmask=$2
+  local netmask
+
+  if [[ "$raw_netmask" == 0x* ]]; then
+    netmask="`printf "%u" "0x$raw_netmask"`"
+  else
+    netmask="`iptodec "$raw_netmask"`"
+  fi
+
+  ipv="`iptodec $ip`"
+
+  echo "ipv=$ipv; nmv=$netmask" >&2
+
+  local nbits=0
+  local x=$netmask
+  while [ $(( $x & 1 ))  -eq 0 ]; do
+    let nbits+=1
+    x=$(( x >> 1 ))
+  done
+
+  nbits=$(( 32 - nbits ))
+
+  echo "nbits=$nbits" >&2
+
+  local ipbv=$(( $ipv & $netmask ))
+  local ipb1=$(( (ipbv >> 24) & 255 ))
+  local ipb2=$(( (ipbv >> 16) & 255 ))
+  local ipb3=$(( (ipbv >> 8) & 255 ))
+  local ipb4=$(( ipbv & 255 ))
+
+  local ipbase="`printf "%u.%u.%u.%u" $ipb1 $ipb2 $ipb3 $ipb4`"
+
+  # echo "netmask=$netmask"
+  # echo "ipbase=$ipbase"
+	
+  echo "$ipbase/$nbits"
+}
+
+
+MY_IP_AND_NETMASK="`ifconfig $JETSON_NET_INTERFACE | grep 'inet ' | sed -n -E 's/^.*inet +(addr:)?([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) +(Bcast:[^ ]+ +)?(netmask |Mask:)([0-9a-fx.]+)( .*)?$/\2 \5/p'`"
+
+echo "IP and netmask:[$MY_IP_AND_NETMASK]"
+
+if [ -z "$MY_IP_AND_NETMASK" ]; then
+  echo "could not get ip and netmask for interface $JETSON_NET_INTERFACEZ"
+fi
+
+SUBNET=`ipnmtocidr $MY_IP_AND_NETMASK`
+
+echo "Scanning for NVidia adapters running SSH on subnet $SUBNET..." >&2
+sudo nmap -sS -p 22 192.168.1.0/24 | grep -B5 Nvidia | grep 'scan report' | sed -n -E 's/^Nmap scan report for ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).*$/\1/p'

@@ -1,0 +1,178 @@
+#!/bin/bash
+
+set -e
+
+if ! which sshpass > /dev/null; then
+  echo "sshpass is not installed on dev host; installing"
+  brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Library/Formula/sshpass.rb
+fi
+
+if ! which grealpath > /dev/null; then
+  echo "grealpath is not installed on dev host; installing"
+  brew install coreutils
+fi
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo "Script dir is $SCRIPT_DIR"
+
+JETSON_DIR="$( grealpath "$SCRIPT_DIR/.." )"
+echo "Jetson dir is $JETSON_DIR"
+
+JIP=$1
+JPASS=$2
+JUSER=nvidia
+
+usage() {
+  echo "Usage is:" >&2
+  echo "" >&2
+  echo "  post-reimage-init <jetson-ip-address> <jetson-password>" >&2
+  exit 1
+}
+
+wait_for_ssh() {
+  echo "Waiting for SSH server to come back up..."
+  RC=255
+  while [ $RC -eq 255 -a $RC -ne 0 ]; do
+    RC=0
+    ssh "$JUSER@$JIP" true || RC=$?
+  done
+  if [ $RC -eq 0 ]; then
+    echo "SSH server is back up! Sleeping for 10 seconds to stabilize"
+    sleep 10
+  else
+    echo "Unexpected failure waiting for SSH server: RC=$RC"
+  fi
+  return $RC
+}
+
+
+if [ -z "$JIP" -o -z "$JPASS" ]; then
+  usage
+fi
+
+if [ -e "$HOME/.ssh/id_rsa.pub" ]; then
+  ssh-add -L | grep -q id_rsa || ssh-add ~/.ssh/id_rsa
+  echo "$HOME/.ssh/id_rsa.pub will be added to authorized_keys"
+  SSH_PUB_KEY="$(cat ~/.ssh/id_rsa.pub)"
+
+else
+  echo "You must have an SSH key defined in $HOME/.ssh/id_rsa and $HOME/.ssh/id_rsa.pub"
+  exit 1
+fi
+
+ssh-keygen -R $JIP >/dev/null 2>/dev/null || true
+
+SSCRIPT="/tmp/jetson-init.sh"
+
+# Create the initial bootstrap script that we will run through SSH the first time
+
+cat << EOF > "$SSCRIPT"
+set -x
+cat << XXEOF > ~/initscript
+#!/bin/bash
+set -e
+set -x
+mkdir -p ~/.local/bin
+mkdir -p ~/bin
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+touch ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+touch ~/.ssh/config
+chmod 600 ~/.ssh/config
+
+if [[ ":\$PATH:" == *":\$HOME/bin:"* ]]; then
+  echo "$HOME/bin already in PATH; not adding"
+else
+  echo "Adding \$HOME/bin to PATH"
+  export PATH="/home/bin:\$PATH"
+fi
+
+if [[ ":\$PATH:" == *":\$HOME/.local/bin:"* ]]; then
+  echo "$HOME/.local/bin already in PATH; not adding"
+else
+  echo "Adding \$HOME/.local/bin to PATH"
+  export PATH="/home/$JUSER/.local.bin:\$PATH"
+fi
+
+cat << XEOF > ~/.ssh/jetson-askpass.sh
+#!/bin/bash
+echo "$JPASS"
+XEOF
+chmod 700 ~/.ssh/jetson-askpass.sh
+export SUDO_ASKPASS="/home/$JUSER/.ssh/jetson-askpass.sh"
+
+sudo -A echo "sudo mode successfully entered..." || ( echo "sudo failed!" && exit 1 )
+
+if ! sudo test  -f "/etc/sudoers.d/90-user-$JUSER-nopass"; then
+  echo "User $JUSER does not have sudo NOPASS set up--adding..."
+  echo "$JUSER ALL=(ALL) NOPASSWD:ALL" > nopass.txt
+  chmod 700 nopass.txt
+  sudo chown root.root nopass.txt
+  sudo mv nopass.txt "/etc/sudoers.d/90-user-$JUSER-nopass"
+  sudo echo "Succeeded updating /etc/sudoers.d/90-user-$JUSER-nopass"
+fi
+
+rm ~/.ssh/jetson-askpass.sh
+unset SUDO_ASKPASS
+sudo echo "sudo now working without password"
+
+if ! grep -q "$SSH_PUB_KEY" ~/.ssh/authorized_keys; then
+  echo "$SSH_PUB_KEY" >> ~/.ssh/authorized_keys
+  chmod 600 ~/.ssh/authorized_keys
+  echo "SSH public key from host's id_rsa.pub successfully added to ~/.ssh/authorized_keys on device"
+else
+  echo "SSH public key from host's id_rsa.pub already present in device's ~/.ssh/authorized_keys; not adding"
+fi;
+XXEOF
+chmod +x initscript
+./initscript
+rc=$?
+if [ $rc -ne 0 ]; then
+  echo "init script failed with exit code $rc"
+  exit $rc
+fi
+rm ~/initscript
+echo "init script succeeded"
+EOF
+
+export SSHPASS="$JPASS"
+RETCODE=0
+sshpass -e ssh -A -o StrictHostKeyChecking=no "$JUSER@$JIP" < "$SSCRIPT" || RETCODE=$?
+#rm "$SSCRIPT" || true
+
+if [ "$RETCODE" -ne 0 ]; then
+  echo "Bootstrap script on jetson board failed with exit code $RETCODE"
+  exit 1
+fi
+
+echo "Successfully ran SSH bootstrap script on Jetson board..."
+
+ssh-keyscan -H "$JIP" >> ~/.ssh/known_hosts
+
+echo "Testing key-based SSH"
+unset SSHPASS
+ssh -A -oBatchMode=yes "$JUSER@$JIP" << EOF
+echo "Key-based SSH successfully provisioned!"
+EOF
+
+echo "Populating initial home directory"
+echo executing "rsync -a \"$JETSON_DIR/home/\" \"$JUSER@$JIP:~/\""
+
+rsync -a "$JETSON_DIR/home/" "$JUSER@$JIP:~/"
+
+echo "Successfully populated initial home directory..."
+
+echo "Performing scripted initialization"
+
+ssh -A "$JUSER@$JIP" "bash -l -c ./bin/initial-jetson-setup"
+
+echo "first phse complete! rebooting"
+
+ssh -A "$JUSER@$JIP" sudo reboot || true
+
+sleep 5
+
+wait_for_ssh
+
+$SCRIPT_DIR/post-upgrade-init "$JUSER@$JIP"

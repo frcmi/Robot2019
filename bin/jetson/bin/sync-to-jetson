@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+#echo "Script dir is $SCRIPT_DIR"
+
+JETSON_DIR="$( grealpath "$SCRIPT_DIR/.." )"
+#echo "Jetson dir is $JETSON_DIR"
+
+JTARGET=$1
+if [ -z "$JTARGET" ]; then
+  JTARGET="jetson"
+fi
+
+usage() {
+  echo "Usage is:" >&2
+  echo "" >&2
+  echo "  sync-to-jetson [<jetson-ssh-target>]" >&2
+  echo >&2
+  echo "      jetson-ssh-target: The ssh connect point for the jetson; defaults to \"jetson\"." >&2
+  exit 1
+}
+
+if [[ "$JTARGET" == "-"*  ]]; then
+  usage
+fi
+
+git submodule update --init --recursive "$JETSON_DIR"
+ssh "$JTARGET" 'mkdir -p ~/external ~/src'
+rsync -a "$JETSON_DIR/home/" "$JTARGET:~/"
+rsync -a "$JETSON_DIR/SnailVision/" "$JTARGET:~/SnailVision/"
+

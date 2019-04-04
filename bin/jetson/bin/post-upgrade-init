@@ -1,0 +1,43 @@
+#!/bin/bash
+
+set -x
+set -e
+
+if ! which grealpath > /dev/null; then
+  echo "grealpath is not installed on dev host; installing"
+  brew install coreutils
+fi
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo "Script dir is $SCRIPT_DIR"
+
+JETSON_DIR="$( grealpath "$SCRIPT_DIR/.." )"
+echo "Jetson dir is $JETSON_DIR"
+
+JTARGET=$1
+
+usage() {
+  echo "Usage is:" >&2
+  echo "" >&2
+  echo "  post-upgrade-init <jetson-username>@<jetson-ip-address>" >&2
+  exit 1
+}
+
+if [ -z "$JTARGET" ]; then
+  usage
+fi
+
+ssh-add -L | grep -q id_rsa || ssh-add ~/.ssh/id_rsa
+  
+echo "Updating basic home directory files..."
+
+ssh "$JTARGET" 'mkdir -p ~/external ~/src'
+rsync -a "$JETSON_DIR/home/" "$JTARGET:~/"
+git submodule update --init --recursive "$JETSON_DIR"
+rsync -a --force "$JETSON_DIR/external/buildOpenCVTX2/" "$JTARGET:~/src/buildOpenCVTX2"
+
+echo "Installing/upgrading"
+
+ssh -A "$JTARGET" "bash -l -c post-upgrade-setup"
+
+echo "Install complete!"
