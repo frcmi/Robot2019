@@ -85,7 +85,6 @@ public class Camera extends Subsystem {
             }
         } else {
             Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
-            Imgproc.line(source, new Point(10, 10), new Point(30, 30), new Scalar(255, 0, 0));
             drawOnFrame(source);
         }
 
