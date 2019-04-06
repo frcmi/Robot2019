@@ -39,6 +39,10 @@ public class Camera extends Subsystem {
 
     private int screenWidth;
     private int screenHeight;
+
+    private int calibWidth = 780;
+    private int calibHeight = 400;
+
     private int fps;
     private UsbCamera camera;
 
@@ -83,7 +87,6 @@ public class Camera extends Subsystem {
             Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2BGRA);
             Imgproc.line(source, new Point(10, 10), new Point(30, 30), new Scalar(255, 0, 0));
             drawOnFrame(source);
-            outputStream.putFrame(source);
         }
 
         //Testing code to get delta
@@ -141,6 +144,13 @@ public class Camera extends Subsystem {
     public void drawLine3D(Point3 point1, Point3 point2, Scalar color) {
         MatOfPoint2f pixels = null;
         Calib3d.projectPoints(new MatOfPoint3f(point1, point2), rvec, tvec, mtx, dist, pixels);
-        Imgproc.line(srcPointer, pixels.toArray()[0], pixels.toArray()[1], color);
+        Point p1 = pixels.toArray()[0];
+        Point p2 = pixels.toArray()[1];
+        double[] p1Array = {p1.x * screenWidth / calibWidth, p1.y * screenHeight / calibHeight};
+        double[] p2Array = {p2.x * screenWidth / calibWidth, p2.y * screenHeight / calibHeight};
+        p1.set(p1Array);
+        p2.set(p2Array);
+        
+        Imgproc.line(srcPointer, p1, p2, color);
     }
 }
