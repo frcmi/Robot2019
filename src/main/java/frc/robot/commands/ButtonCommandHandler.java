@@ -21,7 +21,7 @@ public class ButtonCommandHandler extends CommandBase {
     protected void execute() {
 
         // Auto test button mapping
-        boolean autoTestButton = RobotMap.leftWhiteButton(); //make that here
+        boolean autoTestButton = false; // RobotMap.leftWhiteButton(); //make that here
         if (autoTestButton != lastAutoTestButton && autoTestButton == true){
             new AutoDock(new Delta(2, 1, Math.PI/3, (long) 0)).start();
         }

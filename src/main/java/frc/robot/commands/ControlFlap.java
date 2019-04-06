@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 public class ControlFlap extends CommandBase {
     private int lastInput = -1;
     private boolean goDown = false;
+    private boolean goUp = false;
     
     public ControlFlap() {
         requires(flap);
@@ -16,20 +17,27 @@ public class ControlFlap extends CommandBase {
     // Called periodically while the command is running
     @Override
     protected void execute() {
-        boolean switchVal = RobotMap.flipFlapSwitch.get();
-        if (!RobotMap.flipFlapSwitch.get()){
+        if (!RobotMap.bottomSwitch.get()){
             goDown = false;
         }
-        if (goDown){
-            flap.setMotor(-0.5);
+        if (!RobotMap.topSwitch.get()) {
+            goUp = false;
         }
-        else{
-            if (RobotMap.getLeftHat() == 0){
+        if (goDown) {
+            flap.setMotor(-0.5);
+        } else if (goUp) {
+            flap.setMotor(0.5);
+        } else {
+            if (RobotMap.getLeftHat() == 0) {
                 flap.setMotor(0.5);
-            } else if(RobotMap.getLeftHat() == 180 && RobotMap.flipFlapSwitch.get()){
+            } else if(RobotMap.getLeftHat() == 180 && RobotMap.bottomSwitch.get()) {
                 flap.setMotor(-0.5);
                 goDown = true;
-            } else{
+            } else if (RobotMap.leftWhiteButton() && RobotMap.rightLeftWhite() && RobotMap.rightRightWhite()) {
+                flap.setMotor(0.5);
+                
+                goUp = true;
+            } else {
                 flap.setMotor(0.0);
             }
         }
