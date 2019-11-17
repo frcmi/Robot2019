@@ -40,5 +40,5 @@ __pycache__/
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-#SublimeText project file
-Robot2019.sublime-project
+#SublimeText files
+Robot2019.sublime-*
